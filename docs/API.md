@@ -1809,21 +1809,41 @@ POST /api/reels
 
 **Auth:** Bearer Token (any role)
 
-**Request Body:**
+**Content-Type:** `multipart/form-data` (for file upload) or `application/json` (for URL)
 
-| Field           | Type   | Required | Constraints        | Description                       |
-|-----------------|--------|----------|--------------------|-----------------------------------|
-| `videoUrl`      | string | Yes      | min: 1              | URL of the video                  |
-| `caption`       | string | No       |                    | Reel caption                      |
-| `linkedProduct` | string | No       | Valid MongoDB ObjectId | ID of a product to link to the reel |
+**Form Data (file upload):**
 
-**Request Example:**
+| Field           | Type   | Required | Description                       |
+|-----------------|--------|----------|-----------------------------------|
+| `video`         | file   | Yes*     | Video file (mp4, mov, avi). Max 100MB. Uploaded to Cloudinary. |
+| `caption`       | string | No       | Reel caption                      |
+| `linkedProduct` | string | No       | Product ID to link to the reel    |
+
+**JSON Body (URL-based, no file upload):**
+
+| Field           | Type   | Required | Description                       |
+|-----------------|--------|----------|-----------------------------------|
+| `videoUrl`      | string | Yes*     | URL of an existing video          |
+| `caption`       | string | No       | Reel caption                      |
+| `linkedProduct` | string | No       | Product ID to link to the reel    |
+
+> *Either `video` file or `videoUrl` must be provided.
+
+**Request Example (file upload via curl):**
+
+```bash
+curl -X POST http://localhost:5001/api/reels \
+  -H "Authorization: Bearer <token>" \
+  -F "video=@workout.mp4" \
+  -F "caption=My deadlift PR!"
+```
+
+**Request Example (JSON with URL):**
 
 ```json
 {
-  "videoUrl": "https://cdn.reauxlabs.com/reels/deadlift-form-guide.mp4",
-  "caption": "Proper deadlift form - avoid these common mistakes!",
-  "linkedProduct": "6662ab0ecd2e3f4a5b6c7d84"
+  "videoUrl": "https://example.com/videos/workout.mp4",
+  "caption": "My deadlift PR!"
 }
 ```
 
@@ -1832,16 +1852,16 @@ POST /api/reels
 ```json
 {
   "success": true,
+  "message": "Reel created",
   "data": {
-    "_id": "6661ab0ecd2e3f4a5b6c7d83",
-    "author": "665b2a3f4d5c6e7f8a9b0d1e",
-    "videoUrl": "https://cdn.reauxlabs.com/reels/deadlift-form-guide.mp4",
-    "caption": "Proper deadlift form - avoid these common mistakes!",
-    "linkedProduct": "6662ab0ecd2e3f4a5b6c7d84",
+    "_id": "698624a8a1a4e084ed96408e",
+    "author": "698622d81e80db14e947565b",
+    "videoUrl": "https://res.cloudinary.com/dfusrxsq6/video/upload/v1770398886/reaux-labs/reels/ub8wtfrzacnclwuokymo.mp4",
+    "caption": "My deadlift PR!",
     "likes": [],
     "likesCount": 0,
-    "createdAt": "2025-06-14T06:00:00.000Z",
-    "updatedAt": "2025-06-14T06:00:00.000Z"
+    "createdAt": "2026-02-06T17:28:08.668Z",
+    "updatedAt": "2026-02-06T17:28:08.668Z"
   }
 }
 ```

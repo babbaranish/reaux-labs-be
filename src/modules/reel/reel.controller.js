@@ -4,7 +4,12 @@ import { sendSuccess, sendPaginated } from '../../shared/response.js';
 
 export const create = async (req, res, next) => {
   try {
-    const reel = await reelService.createReel(req.body, req.user.id);
+    const data = {
+      caption: req.body.caption,
+      linkedProduct: req.body.linkedProduct,
+      videoUrl: req.file?.path || req.body.videoUrl,
+    };
+    const reel = await reelService.createReel(data, req.user.id);
     return sendSuccess(res, reel, httpStatus.CREATED, 'Reel created');
   } catch (error) {
     next(error);

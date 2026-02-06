@@ -6,3 +6,4 @@ uploads/
 test*
 CLAUDE*
 package-lock.json
+*.mp4
