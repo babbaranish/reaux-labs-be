@@ -16,25 +16,24 @@ export const getChallenges = async (query) => {
     page: query.page,
     limit: query.limit,
     sort: { startDate: -1 },
+    select: '-participants',
   });
 };
 
 export const joinChallenge = async (challengeId, userId) => {
-  const challenge = await Challenge.findById(challengeId);
+  const challenge = await Challenge.findOneAndUpdate(
+    { _id: challengeId, 'participants.userId': { $ne: userId } },
+    { $push: { participants: { userId } } },
+    { new: true }
+  ).select('-participants').lean();
+
   if (!challenge) {
-    throw new AppError('Challenge not found', httpStatus.NOT_FOUND);
-  }
-
-  const alreadyJoined = challenge.participants.some(
-    (p) => p.userId.toString() === userId.toString()
-  );
-
-  if (alreadyJoined) {
+    const exists = await Challenge.exists({ _id: challengeId });
+    if (!exists) {
+      throw new AppError('Challenge not found', httpStatus.NOT_FOUND);
+    }
     throw new AppError('Already joined this challenge', httpStatus.CONFLICT);
   }
-
-  challenge.participants.push({ userId });
-  await challenge.save();
 
   return challenge;
 };

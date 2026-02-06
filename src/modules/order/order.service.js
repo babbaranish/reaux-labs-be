@@ -92,7 +92,7 @@ export const getMyOrders = async (userId, query) => {
 };
 
 export const getOrderById = async (id, userId) => {
-  const order = await Order.findById(id);
+  const order = await Order.findById(id).lean();
   if (!order) {
     throw new AppError('Order not found', httpStatus.NOT_FOUND);
   }

@@ -24,17 +24,17 @@ export const getGyms = async (query) => {
     filter['address.city'] = { $regex: new RegExp(query.city, 'i') };
   }
 
-  const result = await paginate(Gym, filter, {
+  return paginate(Gym, filter, {
     page: query.page,
     limit: query.limit,
     sort: query.sort || { createdAt: -1 },
   });
-
-  return result;
 };
 
 export const getGymById = async (id) => {
-  const gym = await Gym.findById(id).populate('createdBy', 'name email');
+  const gym = await Gym.findById(id)
+    .populate('createdBy', 'name email')
+    .lean();
   if (!gym) {
     throw new AppError('Gym not found', httpStatus.NOT_FOUND);
   }
@@ -61,12 +61,14 @@ export const deleteGym = async (id) => {
 };
 
 export const assignAdmin = async (gymId, userId) => {
-  const gym = await Gym.findById(gymId);
+  const [gym, user] = await Promise.all([
+    Gym.findById(gymId),
+    User.findById(userId),
+  ]);
+
   if (!gym) {
     throw new AppError('Gym not found', httpStatus.NOT_FOUND);
   }
-
-  const user = await User.findById(userId);
   if (!user) {
     throw new AppError('User not found', httpStatus.NOT_FOUND);
   }

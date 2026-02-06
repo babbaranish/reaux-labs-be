@@ -20,7 +20,9 @@ export const authenticate = async (req, res, next) => {
       return sendError(res, 'Invalid or expired token', httpStatus.UNAUTHORIZED);
     }
 
-    const user = await User.findById(decoded.userId).populate('gymId', 'name slug logo');
+    const user = await User.findById(decoded.userId)
+      .select('email name role status gymId')
+      .lean();
     if (!user) {
       return sendError(res, 'User not found', httpStatus.UNAUTHORIZED);
     }

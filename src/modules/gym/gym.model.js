@@ -35,7 +35,6 @@ const gymSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-gymSchema.index({ isActive: 1 });
-gymSchema.index({ 'address.city': 1 });
+gymSchema.index({ isActive: 1, 'address.city': 1, createdAt: -1 });
 
 export const Gym = mongoose.model('Gym', gymSchema);

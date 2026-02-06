@@ -25,10 +25,9 @@ export const addToCart = async (userId, { productId, quantity = 1 }) => {
 };
 
 export const getCart = async (userId) => {
-  const cart = await Cart.findOne({ userId }).populate(
-    'items.product',
-    'name price images stock'
-  );
+  const cart = await Cart.findOne({ userId })
+    .populate('items.product', 'name price images stock')
+    .lean();
   return cart || { userId, items: [] };
 };
 

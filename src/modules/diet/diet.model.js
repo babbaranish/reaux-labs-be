@@ -43,8 +43,7 @@ const dietPlanSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-dietPlanSchema.index({ category: 1 });
-dietPlanSchema.index({ isPublished: 1 });
+dietPlanSchema.index({ isPublished: 1, category: 1, createdAt: -1 });
 dietPlanSchema.index({ createdBy: 1 });
 
 export const DietPlan = mongoose.model('DietPlan', dietPlanSchema);

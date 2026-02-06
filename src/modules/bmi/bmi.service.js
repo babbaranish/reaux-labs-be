@@ -37,7 +37,7 @@ export const getHistory = async (userId, query) => {
 };
 
 export const getLatest = async (userId) => {
-  const record = await BMIRecord.findOne({ userId }).sort({ createdAt: -1 });
+  const record = await BMIRecord.findOne({ userId }).sort({ createdAt: -1 }).lean();
   if (!record) {
     throw new AppError('No BMI records found', httpStatus.NOT_FOUND);
   }

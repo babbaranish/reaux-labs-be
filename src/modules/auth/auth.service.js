@@ -48,7 +48,9 @@ export const login = async ({ email, password }) => {
 };
 
 export const getProfile = async (userId) => {
-  const user = await User.findById(userId).populate('gymId', 'name slug logo address');
+  const user = await User.findById(userId)
+    .populate('gymId', 'name slug logo address')
+    .lean();
   if (!user) {
     throw new AppError('User not found', httpStatus.NOT_FOUND);
   }

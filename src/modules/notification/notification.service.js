@@ -22,18 +22,15 @@ export const getNotifications = async (userId, query) => {
 };
 
 export const markAsRead = async (notificationId, userId) => {
-  const notification = await Notification.findById(notificationId);
+  const notification = await Notification.findOneAndUpdate(
+    { _id: notificationId, userId },
+    { isRead: true },
+    { new: true }
+  ).lean();
 
   if (!notification) {
     throw new AppError('Notification not found', httpStatus.NOT_FOUND);
   }
-
-  if (notification.userId.toString() !== userId.toString()) {
-    throw new AppError('Unauthorized', httpStatus.FORBIDDEN);
-  }
-
-  notification.isRead = true;
-  await notification.save();
 
   return notification;
 };

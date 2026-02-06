@@ -31,63 +31,69 @@ export const getPosts = async (query) => {
     filter.category = query.category;
   }
 
-  const result = await paginate(Post, filter, {
+  return paginate(Post, filter, {
     page: query.page,
     limit: query.limit,
     populate: { path: 'author', select: 'name avatar' },
+    select: '-likes',
   });
-
-  return result;
 };
 
 export const getPostById = async (id) => {
-  const post = await Post.findById(id).populate('author', 'name avatar');
+  const [post, comments] = await Promise.all([
+    Post.findById(id)
+      .populate('author', 'name avatar')
+      .select('-likes')
+      .lean(),
+    Comment.find({ postId: id })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .populate('author', 'name avatar')
+      .lean(),
+  ]);
+
   if (!post) {
     throw new AppError('Post not found', httpStatus.NOT_FOUND);
   }
-
-  const comments = await Comment.find({ postId: id })
-    .sort({ createdAt: -1 })
-    .populate('author', 'name avatar');
 
   return { post, comments };
 };
 
 export const likePost = async (postId, userId) => {
-  const post = await Post.findById(postId);
-  if (!post) {
-    throw new AppError('Post not found', httpStatus.NOT_FOUND);
+  const alreadyLiked = await Post.exists({ _id: postId, likes: userId });
+
+  if (!alreadyLiked) {
+    const post = await Post.findOneAndUpdate(
+      { _id: postId, likes: { $ne: userId } },
+      { $addToSet: { likes: userId }, $inc: { likesCount: 1 } },
+      { new: true }
+    ).select('-likes').lean();
+
+    if (!post) {
+      throw new AppError('Post not found', httpStatus.NOT_FOUND);
+    }
+    return post;
   }
 
-  const likeIndex = post.likes.indexOf(userId);
+  const post = await Post.findOneAndUpdate(
+    { _id: postId, likes: userId },
+    { $pull: { likes: userId }, $inc: { likesCount: -1 } },
+    { new: true }
+  ).select('-likes').lean();
 
-  if (likeIndex === -1) {
-    post.likes.push(userId);
-    post.likesCount = post.likes.length;
-  } else {
-    post.likes.splice(likeIndex, 1);
-    post.likesCount = post.likes.length;
-  }
-
-  await post.save();
   return post;
 };
 
 export const addComment = async (postId, userId, content) => {
-  const post = await Post.findById(postId);
-  if (!post) {
+  const postExists = await Post.exists({ _id: postId });
+  if (!postExists) {
     throw new AppError('Post not found', httpStatus.NOT_FOUND);
   }
 
-  const comment = await Comment.create({
-    postId,
-    author: userId,
-    content,
-  });
+  const [comment] = await Promise.all([
+    Comment.create({ postId, author: userId, content }),
+    Post.findByIdAndUpdate(postId, { $inc: { commentsCount: 1 } }),
+  ]);
 
-  post.commentsCount += 1;
-  await post.save();
-
-  const populated = await comment.populate('author', 'name avatar');
-  return populated;
+  return comment.populate('author', 'name avatar');
 };

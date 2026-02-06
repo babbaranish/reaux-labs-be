@@ -38,18 +38,20 @@ export const getDiets = async (query) => {
     filter.tags = { $in: [query.tag] };
   }
 
-  const result = await paginate(DietPlan, filter, {
+  return paginate(DietPlan, filter, {
     page: query.page,
     limit: query.limit,
     sort: query.sort || { createdAt: -1 },
     populate: { path: 'createdBy', select: 'name avatar' },
+    select: '-likes -followers',
   });
-
-  return result;
 };
 
 export const getDietById = async (id) => {
-  const diet = await DietPlan.findById(id).populate('createdBy', 'name avatar');
+  const diet = await DietPlan.findById(id)
+    .populate('createdBy', 'name avatar')
+    .select('-likes -followers')
+    .lean();
   if (!diet) {
     throw new AppError('Diet plan not found', httpStatus.NOT_FOUND);
   }
@@ -57,35 +59,51 @@ export const getDietById = async (id) => {
 };
 
 export const followDiet = async (dietId, userId) => {
-  const diet = await DietPlan.findById(dietId);
-  if (!diet) {
-    throw new AppError('Diet plan not found', httpStatus.NOT_FOUND);
+  const alreadyFollowing = await DietPlan.exists({ _id: dietId, followers: userId });
+
+  if (!alreadyFollowing) {
+    const diet = await DietPlan.findOneAndUpdate(
+      { _id: dietId, followers: { $ne: userId } },
+      { $addToSet: { followers: userId } },
+      { new: true }
+    ).select('-likes -followers').lean();
+
+    if (!diet) {
+      throw new AppError('Diet plan not found', httpStatus.NOT_FOUND);
+    }
+    return diet;
   }
 
-  const followerIndex = diet.followers.indexOf(userId);
-  if (followerIndex === -1) {
-    diet.followers.push(userId);
-  } else {
-    diet.followers.splice(followerIndex, 1);
-  }
+  const diet = await DietPlan.findOneAndUpdate(
+    { _id: dietId, followers: userId },
+    { $pull: { followers: userId } },
+    { new: true }
+  ).select('-likes -followers').lean();
 
-  await diet.save();
   return diet;
 };
 
 export const likeDiet = async (dietId, userId) => {
-  const diet = await DietPlan.findById(dietId);
-  if (!diet) {
-    throw new AppError('Diet plan not found', httpStatus.NOT_FOUND);
+  const alreadyLiked = await DietPlan.exists({ _id: dietId, likes: userId });
+
+  if (!alreadyLiked) {
+    const diet = await DietPlan.findOneAndUpdate(
+      { _id: dietId, likes: { $ne: userId } },
+      { $addToSet: { likes: userId } },
+      { new: true }
+    ).select('-likes -followers').lean();
+
+    if (!diet) {
+      throw new AppError('Diet plan not found', httpStatus.NOT_FOUND);
+    }
+    return diet;
   }
 
-  const likeIndex = diet.likes.indexOf(userId);
-  if (likeIndex === -1) {
-    diet.likes.push(userId);
-  } else {
-    diet.likes.splice(likeIndex, 1);
-  }
+  const diet = await DietPlan.findOneAndUpdate(
+    { _id: dietId, likes: userId },
+    { $pull: { likes: userId } },
+    { new: true }
+  ).select('-likes -followers').lean();
 
-  await diet.save();
   return diet;
 };

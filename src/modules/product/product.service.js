@@ -31,7 +31,7 @@ export const getProducts = async (query) => {
 };
 
 export const getProductById = async (id) => {
-  const product = await Product.findById(id);
+  const product = await Product.findById(id).lean();
   if (!product) {
     throw new AppError('Product not found', httpStatus.NOT_FOUND);
   }

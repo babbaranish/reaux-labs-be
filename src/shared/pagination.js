@@ -11,7 +11,8 @@ export const paginate = async (model, query = {}, options = {}) => {
       .skip(skip)
       .limit(limit)
       .populate(options.populate || '')
-      .select(options.select || ''),
+      .select(options.select || '')
+      .lean(),
     model.countDocuments(query),
   ]);
 

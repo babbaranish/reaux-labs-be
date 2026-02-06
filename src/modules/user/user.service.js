@@ -11,13 +11,13 @@ export const getUsers = async (query) => {
   return paginate(User, filter, {
     page: query.page,
     limit: query.limit,
-    populate: 'gymId',
+    populate: { path: 'gymId', select: 'name slug logo' },
     select: '-password',
   });
 };
 
 export const getUserById = async (id) => {
-  const user = await User.findById(id).populate('gymId', 'name slug logo address');
+  const user = await User.findById(id).populate('gymId', 'name slug logo address').lean();
   if (!user) throw new AppError('User not found', httpStatus.NOT_FOUND);
   return user;
 };
