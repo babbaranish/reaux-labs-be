@@ -1916,9 +1916,64 @@ GET /api/reels
 }
 ```
 
+> **Note:** The `likes` array is excluded from list responses to reduce payload size. Only `likesCount` is returned. Use the detail endpoint (7.3) to get full reel data.
+
 ---
 
-### 7.3 Like/Unlike Reel
+### 7.3 Get Reel by ID
+
+```
+GET /api/reels/:id
+```
+
+**Auth:** None (public)
+
+**URL Parameters:**
+
+| Parameter | Type   | Description       |
+|-----------|--------|-------------------|
+| `id`      | string | Reel's MongoDB ID |
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "_id": "698624a8a1a4e084ed96408e",
+    "author": {
+      "_id": "698622d81e80db14e947565b",
+      "name": "Arjun Patel",
+      "avatar": "https://cdn.reauxlabs.com/avatars/arjun.jpg"
+    },
+    "videoUrl": "https://res.cloudinary.com/dfusrxsq6/video/upload/v1770398886/reaux-labs/reels/ub8wtfrzacnclwuokymo.mp4",
+    "caption": "Proper deadlift form - avoid these common mistakes!",
+    "linkedProduct": {
+      "_id": "6662ab0ecd2e3f4a5b6c7d84",
+      "name": "REAUX Lifting Straps",
+      "price": 799,
+      "images": ["https://cdn.reauxlabs.com/products/lifting-straps-1.jpg"]
+    },
+    "likes": ["665b2a3f4d5c6e7f8a9b0d1e"],
+    "likesCount": 1,
+    "createdAt": "2026-02-06T17:28:08.668Z",
+    "updatedAt": "2026-02-06T17:28:08.668Z"
+  }
+}
+```
+
+**Error Response (404 Not Found):**
+
+```json
+{
+  "success": false,
+  "message": "Reel not found"
+}
+```
+
+---
+
+### 7.4 Like/Unlike Reel
 
 ```
 POST /api/reels/:id/like

@@ -25,6 +25,15 @@ export const list = async (req, res, next) => {
   }
 };
 
+export const getById = async (req, res, next) => {
+  try {
+    const reel = await reelService.getReelById(req.params.id);
+    return sendSuccess(res, reel, httpStatus.OK);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const like = async (req, res, next) => {
   try {
     const reel = await reelService.likeReel(req.params.id, req.user.id);

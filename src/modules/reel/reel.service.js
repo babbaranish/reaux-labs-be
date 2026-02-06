@@ -16,9 +16,22 @@ export const getReels = async (query) => {
     page: query.page,
     limit: query.limit,
     populate: { path: 'author', select: 'name avatar' },
+    select: '-likes',
   });
 
   return result;
+};
+
+export const getReelById = async (reelId) => {
+  const reel = await Reel.findById(reelId)
+    .populate('author', 'name avatar')
+    .populate('linkedProduct', 'name price images');
+
+  if (!reel) {
+    throw new AppError('Reel not found', httpStatus.NOT_FOUND);
+  }
+
+  return reel;
 };
 
 export const likeReel = async (reelId, userId) => {

@@ -7,6 +7,7 @@ const router = Router();
 
 router.post('/', authenticate, uploadReelVideo.single('video'), reelController.create);
 router.get('/', reelController.list);
+router.get('/:id', reelController.getById);
 router.post('/:id/like', authenticate, reelController.like);
 
 export default router;
