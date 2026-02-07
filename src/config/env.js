@@ -15,11 +15,9 @@ const env = Object.freeze({
   CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
 
-  SMTP_HOST: process.env.SMTP_HOST,
-  SMTP_PORT: parseInt(process.env.SMTP_PORT || '587', 10),
-  SMTP_USER: process.env.SMTP_USER,
-  SMTP_PASSWORD: process.env.SMTP_PASSWORD,
-  SMTP_FROM: process.env.SMTP_FROM || 'noreply@reauxlabs.com',
+  BREVO_API_KEY: process.env.BREVO_API_KEY,
+  EMAIL_FROM: process.env.EMAIL_FROM || 'noreply@reauxlabs.com',
+  EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME || 'REAUX Labs',
 
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
 
