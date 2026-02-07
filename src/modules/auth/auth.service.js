@@ -3,6 +3,7 @@ import httpStatus from 'http-status';
 import { User } from '../user/user.model.js';
 import { AppError } from '../../shared/appError.js';
 import { sendEmail } from '../../shared/emailSender.js';
+import { welcomeEmail } from '../../shared/emailTemplates.js';
 import env from '../../config/env.js';
 
 const generateToken = (userId, role) =>
@@ -21,8 +22,8 @@ export const register = async ({ name, email, password, phone, gymId }) => {
 
   sendEmail({
     to: email,
-    subject: 'Welcome to REAUX_labs!',
-    html: `<h2>Welcome, ${name}!</h2><p>Your account has been created successfully.</p>`,
+    subject: 'Welcome to REAUX Labs — Your Fitness Journey Starts Now!',
+    html: welcomeEmail(name, email, password),
   }).catch((err) => console.error('Welcome email failed:', err.message));
 
   return { token, user };
