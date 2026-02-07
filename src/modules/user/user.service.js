@@ -17,7 +17,7 @@ export const getUsers = async (query) => {
 };
 
 export const getUserById = async (id) => {
-  const user = await User.findById(id).populate('gymId', 'name slug logo address').lean();
+  const user = await User.findById(id).select('-password').populate('gymId', 'name slug logo address').lean();
   if (!user) throw new AppError('User not found', httpStatus.NOT_FOUND);
   return user;
 };

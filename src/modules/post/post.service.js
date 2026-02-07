@@ -3,6 +3,7 @@ import { Post } from './post.model.js';
 import { Comment } from './comment.model.js';
 import { AppError } from '../../shared/appError.js';
 import { paginate } from '../../shared/pagination.js';
+import { toggleArrayField } from '../../shared/socialToggle.js';
 
 const extractHashtags = (content) => {
   const matches = content.match(/#(\w+)/g);
@@ -60,28 +61,7 @@ export const getPostById = async (id) => {
 };
 
 export const likePost = async (postId, userId) => {
-  const alreadyLiked = await Post.exists({ _id: postId, likes: userId });
-
-  if (!alreadyLiked) {
-    const post = await Post.findOneAndUpdate(
-      { _id: postId, likes: { $ne: userId } },
-      { $addToSet: { likes: userId }, $inc: { likesCount: 1 } },
-      { new: true }
-    ).select('-likes').lean();
-
-    if (!post) {
-      throw new AppError('Post not found', httpStatus.NOT_FOUND);
-    }
-    return post;
-  }
-
-  const post = await Post.findOneAndUpdate(
-    { _id: postId, likes: userId },
-    { $pull: { likes: userId }, $inc: { likesCount: -1 } },
-    { new: true }
-  ).select('-likes').lean();
-
-  return post;
+  return toggleArrayField(Post, postId, userId, 'likes', { countField: 'likesCount' });
 };
 
 export const addComment = async (postId, userId, content) => {

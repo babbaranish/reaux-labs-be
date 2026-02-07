@@ -6,5 +6,6 @@ const router = Router();
 
 router.get('/', authenticate, notificationController.getNotifications);
 router.put('/read/:id', authenticate, notificationController.markAsRead);
+router.patch('/mark-all-read', authenticate, notificationController.markAllAsRead);
 
 export default router;

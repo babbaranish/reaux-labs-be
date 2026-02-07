@@ -26,7 +26,7 @@ const env = Object.freeze({
 });
 
 if (!env.JWT_SECRET) {
-  console.warn('WARNING: JWT_SECRET is not set. Using default (NOT FOR PRODUCTION)');
+  throw new Error('FATAL: JWT_SECRET environment variable is required. Set it in .env');
 }
 
 if (!env.MONGO_URI) {

@@ -3,22 +3,20 @@ import { Cart } from './cart.model.js';
 import { AppError } from '../../shared/appError.js';
 
 export const addToCart = async (userId, { productId, quantity = 1 }) => {
-  let cart = await Cart.findOne({ userId });
+  // Try atomic increment if item already in cart
+  let cart = await Cart.findOneAndUpdate(
+    { userId, 'items.product': productId },
+    { $inc: { 'items.$.quantity': quantity } },
+    { new: true }
+  );
 
   if (!cart) {
-    cart = await Cart.create({ userId, items: [{ product: productId, quantity }] });
-  } else {
-    const existingItem = cart.items.find(
-      (item) => item.product.toString() === productId
+    // Item not in cart — add it (upsert creates cart if needed)
+    cart = await Cart.findOneAndUpdate(
+      { userId, 'items.product': { $ne: productId } },
+      { $push: { items: { product: productId, quantity } } },
+      { new: true, upsert: true }
     );
-
-    if (existingItem) {
-      existingItem.quantity += quantity;
-    } else {
-      cart.items.push({ product: productId, quantity });
-    }
-
-    await cart.save();
   }
 
   return cart.populate('items.product', 'name price images stock');
@@ -32,15 +30,15 @@ export const getCart = async (userId) => {
 };
 
 export const removeFromCart = async (userId, productId) => {
-  const cart = await Cart.findOne({ userId });
+  const cart = await Cart.findOneAndUpdate(
+    { userId },
+    { $pull: { items: { product: productId } } },
+    { new: true }
+  );
+
   if (!cart) {
     throw new AppError('Cart not found', httpStatus.NOT_FOUND);
   }
 
-  cart.items = cart.items.filter(
-    (item) => item.product.toString() !== productId
-  );
-
-  await cart.save();
   return cart.populate('items.product', 'name price images stock');
 };

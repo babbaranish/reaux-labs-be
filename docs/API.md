@@ -68,7 +68,7 @@ The JWT payload contains:
 
 ### Paginated Response
 
-All list endpoints that support pagination return data in this envelope:
+All list endpoints that support pagination return data in this envelope. The `limit` parameter is capped at **100** results per page.
 
 ```json
 {
@@ -173,14 +173,29 @@ Run `node seed.js` to populate the database with test data. This clears all exis
 
 ### `GET /api/health`
 
-Quick health-check endpoint. No authentication required.
+Quick health-check endpoint. No authentication required. Returns `200` when healthy, `503` when the database is disconnected.
 
-**Response:**
+**Response (200 OK):**
 
 ```json
 {
   "success": true,
-  "message": "REAUX_labs API is running"
+  "message": "REAUX_labs API is running",
+  "timestamp": "2025-06-15T14:00:00.000Z",
+  "uptime": 3600.123,
+  "database": "connected"
+}
+```
+
+**Response (503 Service Unavailable):**
+
+```json
+{
+  "success": false,
+  "message": "Service degraded",
+  "timestamp": "2025-06-15T14:00:00.000Z",
+  "uptime": 3600.123,
+  "database": "disconnected"
 }
 ```
 
@@ -197,7 +212,6 @@ POST /api/auth/register
 ```
 
 **Auth:** None
-**Rate Limit:** Auth limiter (10 requests / 15 min)
 
 **Request Body:**
 
@@ -276,7 +290,6 @@ POST /api/auth/login
 ```
 
 **Auth:** None
-**Rate Limit:** Auth limiter (10 requests / 15 min)
 
 **Request Body:**
 
@@ -472,6 +485,89 @@ PUT /api/auth/profile
     "createdAt": "2025-06-01T10:30:00.000Z",
     "updatedAt": "2025-06-10T14:20:00.000Z"
   }
+}
+```
+
+---
+
+### 1.5 Forgot Password
+
+```
+POST /api/auth/forgot-password
+```
+
+**Auth:** None
+
+Sends a password reset email if the email exists. Always returns success to prevent email enumeration.
+
+**Request Body:**
+
+| Field   | Type   | Required | Constraints       | Description      |
+|---------|--------|----------|-------------------|------------------|
+| `email` | string | Yes      | Valid email format | Account email    |
+
+**Request Example:**
+
+```json
+{
+  "email": "arjun@example.com"
+}
+```
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "If that email exists, a reset link has been sent"
+}
+```
+
+---
+
+### 1.6 Reset Password
+
+```
+POST /api/auth/reset-password
+```
+
+**Auth:** None
+
+Resets the user's password using a valid reset token (received via email). Tokens expire after 1 hour and can only be used once.
+
+**Request Body:**
+
+| Field         | Type   | Required | Constraints | Description                         |
+|---------------|--------|----------|-------------|-------------------------------------|
+| `token`       | string | Yes      | min: 1       | Reset token from the email link     |
+| `newPassword` | string | Yes      | min: 6       | New password                        |
+
+**Request Example:**
+
+```json
+{
+  "token": "a1b2c3d4e5f6...",
+  "newPassword": "NewStrongPass456"
+}
+```
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "Password reset successful"
+}
+```
+
+**Error Responses:**
+
+*400 Bad Request -- Invalid or expired token:*
+
+```json
+{
+  "success": false,
+  "message": "Invalid or expired reset token"
 }
 ```
 
@@ -2373,7 +2469,7 @@ POST /api/orders/create
 
 **Auth:** Bearer Token (any role)
 
-Creates an order from the items currently in the user's cart. The cart is emptied upon successful order creation.
+Creates an order from the items currently in the user's cart. The cart is emptied upon successful order creation. An order confirmation email is sent to the user automatically.
 
 **Request Body:**
 
@@ -2614,6 +2710,89 @@ Returns a specific order. Users can only view their own orders.
 {
   "success": false,
   "message": "Unauthorized to view this order"
+}
+```
+
+---
+
+### 10.4 Update Order Status (Admin)
+
+```
+PATCH /api/orders/:id/status
+```
+
+**Auth:** Bearer Token
+**Role:** `admin` or `superadmin`
+
+Updates the status of an order. Follows a state machine — only valid transitions are allowed. A notification is automatically created for the user on each status change.
+
+**Valid Transitions:**
+
+| From        | Allowed To                    |
+|-------------|-------------------------------|
+| `pending`   | `confirmed`, `cancelled`      |
+| `confirmed` | `shipped`, `cancelled`        |
+| `shipped`   | `delivered`, `cancelled`      |
+| `delivered` | *(none)*                      |
+| `cancelled` | *(none)*                      |
+
+**URL Parameters:**
+
+| Parameter | Type   | Description        |
+|-----------|--------|--------------------|
+| `id`      | string | Order's MongoDB ID |
+
+**Request Body:**
+
+| Field    | Type   | Required | Constraints                                       | Description |
+|----------|--------|----------|---------------------------------------------------|-------------|
+| `status` | string | Yes      | One of: `confirmed`, `shipped`, `delivered`, `cancelled` | New status  |
+
+**Request Example:**
+
+```json
+{
+  "status": "confirmed"
+}
+```
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "Order status updated",
+  "data": {
+    "_id": "6665ef42ab6c7d8e9f0a1bc8",
+    "userId": "665b2a3f4d5c6e7f8a9b0d1e",
+    "status": "confirmed",
+    "items": [ ... ],
+    "totalAmount": 4097,
+    "discount": 819.4,
+    "finalAmount": 3277.6,
+    "createdAt": "2025-06-15T14:00:00.000Z",
+    "updatedAt": "2025-06-16T09:00:00.000Z"
+  }
+}
+```
+
+**Error Responses:**
+
+*400 Bad Request -- Invalid transition:*
+
+```json
+{
+  "success": false,
+  "message": "Cannot transition from 'delivered' to 'shipped'"
+}
+```
+
+*404 Not Found:*
+
+```json
+{
+  "success": false,
+  "message": "Order not found"
 }
 ```
 
@@ -3041,6 +3220,27 @@ PUT /api/notifications/read/:id
 
 ---
 
+### 13.3 Mark All Notifications as Read
+
+```
+PATCH /api/notifications/mark-all-read
+```
+
+**Auth:** Bearer Token (any role)
+
+Marks all unread notifications for the authenticated user as read in a single operation.
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "All notifications marked as read"
+}
+```
+
+---
+
 ## 14. Analytics (Admin)
 
 Base path: `/api/admin`
@@ -3194,6 +3394,8 @@ Returns comprehensive sales analytics including overall stats, monthly breakdown
 | `shipped`   | Order shipped to the customer              |
 | `delivered` | Order delivered successfully               |
 | `cancelled` | Order has been cancelled                   |
+
+**Status Transitions:** `pending` → `confirmed` → `shipped` → `delivered`. Any non-terminal status can also transition to `cancelled`. Terminal statuses (`delivered`, `cancelled`) cannot be changed.
 
 ## Appendix: BMI Categories
 

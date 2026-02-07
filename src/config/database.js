@@ -24,3 +24,8 @@ export const connectDB = async () => {
     console.warn('MongoDB disconnected');
   });
 };
+
+export const disconnectDB = async () => {
+  await mongoose.connection.close();
+  console.log('MongoDB connection closed');
+};

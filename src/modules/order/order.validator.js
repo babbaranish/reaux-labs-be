@@ -12,3 +12,9 @@ export const createOrderSchema = z.object({
     promoCode: z.string().optional(),
   }),
 });
+
+export const updateOrderStatusSchema = z.object({
+  body: z.object({
+    status: z.enum(['confirmed', 'shipped', 'delivered', 'cancelled']),
+  }),
+});

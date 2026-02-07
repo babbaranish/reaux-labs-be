@@ -4,6 +4,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import sanitize from 'mongo-sanitize';
+import mongoose from 'mongoose';
 import env from './config/env.js';
 
 import { errorHandler, notFound } from './middleware/errorHandler.js';
@@ -31,6 +33,12 @@ app.use(helmet());
 app.use(cors({ origin: env.FRONTEND_URL, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+// Sanitize req.body and req.params against NoSQL injection (req.query is read-only in Express 5)
+app.use((req, _res, next) => {
+  if (req.body) req.body = sanitize(req.body);
+  if (req.params) req.params = sanitize(req.params);
+  next();
+});
 app.use(cookieParser());
 
 if (env.NODE_ENV === 'development') {
@@ -38,8 +46,17 @@ if (env.NODE_ENV === 'development') {
 }
 
 // Health check
-app.get('/api/health', (req, res) => {
-  res.json({ success: true, message: 'REAUX_labs API is running' });
+app.get('/api/health', (_req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  const isHealthy = dbStatus === 'connected';
+
+  res.status(isHealthy ? 200 : 503).json({
+    success: isHealthy,
+    message: isHealthy ? 'REAUX_labs API is running' : 'Service degraded',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    database: dbStatus,
+  });
 });
 
 // API routes

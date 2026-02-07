@@ -3,8 +3,12 @@ import { Post } from '../post/post.model.js';
 import { Order } from '../order/order.model.js';
 import { Product } from '../product/product.model.js';
 import { Challenge } from '../challenge/challenge.model.js';
+import { cache } from '../../shared/cache.js';
 
 export const getStats = async () => {
+  const cached = cache.get('admin:stats');
+  if (cached) return cached;
+
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -18,7 +22,7 @@ export const getStats = async () => {
       User.countDocuments({ createdAt: { $gte: thirtyDaysAgo } }),
     ]);
 
-  return {
+  const stats = {
     totalUsers,
     totalPosts,
     totalOrders,
@@ -26,14 +30,21 @@ export const getStats = async () => {
     totalChallenges,
     recentUsers,
   };
+
+  cache.set('admin:stats', stats, 300);
+  return stats;
 };
 
 export const getSalesReport = async () => {
+  const cached = cache.get('admin:salesReport');
+  if (cached) return cached;
+
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
   const [overallStats, monthlyStats, topProducts] = await Promise.all([
     Order.aggregate([
+      { $match: { createdAt: { $gte: sixMonthsAgo } } },
       {
         $group: {
           _id: null,
@@ -60,6 +71,7 @@ export const getSalesReport = async () => {
     ]),
 
     Order.aggregate([
+      { $match: { createdAt: { $gte: sixMonthsAgo } } },
       { $unwind: '$items' },
       {
         $group: {
@@ -80,11 +92,14 @@ export const getSalesReport = async () => {
     averageOrderValue: 0,
   };
 
-  return {
+  const report = {
     totalRevenue: overall.totalRevenue,
     orderCount: overall.orderCount,
     averageOrderValue: overall.averageOrderValue,
     monthlyStats,
     topProducts,
   };
+
+  cache.set('admin:salesReport', report, 300);
+  return report;
 };

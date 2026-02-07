@@ -169,3 +169,68 @@ export const welcomeEmail = (name, email, password) =>
       Stay strong,<br><span style="color:${COLORS.primary};font-weight:600;">Team REAUX Labs</span>
     </p>
   `);
+
+export const passwordResetEmail = (name, resetUrl) =>
+  layout(`
+    <h1 style="color:#ffffff;font-size:26px;font-weight:700;text-align:center;margin:0 0 8px;">
+      Reset Your Password
+    </h1>
+    <p style="color:${COLORS.secondary};font-size:15px;text-align:center;margin:0 0 32px;">
+      Hi ${name}, we received a request to reset your password.
+    </p>
+    <div style="text-align:center;margin:32px 0;">
+      <a href="${resetUrl}" style="background-color:${COLORS.primary};color:#1A1A2E;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block;">
+        Reset Password
+      </a>
+    </div>
+    <p style="color:${COLORS.gray};font-size:13px;text-align:center;margin:0;">
+      This link expires in 1 hour. If you didn't request this, ignore this email.
+    </p>
+  `);
+
+export const orderConfirmationEmail = (name, order) => {
+  const itemsHtml = order.items
+    .map(
+      (item) => `
+      <tr>
+        <td style="padding:12px 0;border-bottom:1px solid #3D3D52;">
+          <span style="color:#ffffff;font-size:14px;">${item.name}</span>
+          <span style="color:${COLORS.gray};font-size:12px;"> x${item.quantity}</span>
+        </td>
+        <td style="padding:12px 0;border-bottom:1px solid #3D3D52;text-align:right;">
+          <span style="color:#ffffff;font-size:14px;">${item.price * item.quantity}</span>
+        </td>
+      </tr>`
+    )
+    .join('');
+
+  return layout(`
+    <h1 style="color:#ffffff;font-size:26px;font-weight:700;text-align:center;margin:0 0 8px;">
+      Order Confirmed!
+    </h1>
+    <p style="color:${COLORS.secondary};font-size:15px;text-align:center;margin:0 0 32px;">
+      Thanks for your order, ${name}. We'll get it to you soon.
+    </p>
+
+    <div style="background-color:${COLORS.darkBg};border-radius:10px;padding:20px;margin:0 0 24px;">
+      <p style="color:${COLORS.gray};font-size:12px;margin:0 0 8px;">Order ID</p>
+      <p style="color:#ffffff;font-size:16px;font-weight:600;margin:0;">#${order._id}</p>
+    </div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      ${itemsHtml}
+      <tr>
+        <td style="padding:16px 0;">
+          <span style="color:#ffffff;font-size:16px;font-weight:600;">Total</span>
+        </td>
+        <td style="padding:16px 0;text-align:right;">
+          <span style="color:${COLORS.primary};font-size:18px;font-weight:700;">${order.finalAmount}</span>
+        </td>
+      </tr>
+    </table>
+
+    <p style="color:${COLORS.gray};font-size:13px;text-align:center;margin:24px 0 0;">
+      Stay strong,<br><span style="color:${COLORS.primary};font-weight:600;">Team REAUX Labs</span>
+    </p>
+  `);
+};

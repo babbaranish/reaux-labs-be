@@ -7,7 +7,7 @@ import { welcomeEmail } from '../../shared/emailTemplates.js';
 import env from '../../config/env.js';
 
 const generateToken = (userId, role) =>
-  jwt.sign({ userId, role }, env.JWT_SECRET || 'default-dev-secret', {
+  jwt.sign({ userId, role }, env.JWT_SECRET, {
     expiresIn: env.JWT_EXPIRES_IN,
   });
 

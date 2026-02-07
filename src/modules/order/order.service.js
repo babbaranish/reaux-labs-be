@@ -2,8 +2,12 @@ import httpStatus from 'http-status';
 import { Order } from './order.model.js';
 import { Cart } from '../cart/cart.model.js';
 import { PromoCode } from '../promo/promo.model.js';
+import { User } from '../user/user.model.js';
 import { AppError } from '../../shared/appError.js';
 import { paginate } from '../../shared/pagination.js';
+import { validatePromo } from '../promo/promo.service.js';
+import { sendEmail } from '../../shared/emailSender.js';
+import { orderConfirmationEmail } from '../../shared/emailTemplates.js';
 
 export const createOrder = async (userId, { shippingAddress, promoCode }) => {
   const cart = await Cart.findOne({ userId }).populate('items.product', 'name price');
@@ -27,42 +31,13 @@ export const createOrder = async (userId, { shippingAddress, promoCode }) => {
   let discount = 0;
 
   if (promoCode) {
-    const promo = await PromoCode.findOne({
-      code: promoCode.toUpperCase(),
-      isActive: true,
-    });
+    const promoResult = await validatePromo(promoCode, totalAmount);
+    discount = promoResult.discount;
 
-    if (!promo) {
-      throw new AppError('Invalid promo code', httpStatus.BAD_REQUEST);
-    }
-
-    const now = new Date();
-    if (promo.validFrom && now < promo.validFrom) {
-      throw new AppError('Promo code is not yet valid', httpStatus.BAD_REQUEST);
-    }
-    if (promo.validUntil && now > promo.validUntil) {
-      throw new AppError('Promo code has expired', httpStatus.BAD_REQUEST);
-    }
-    if (promo.usageLimit && promo.usedCount >= promo.usageLimit) {
-      throw new AppError('Promo code usage limit reached', httpStatus.BAD_REQUEST);
-    }
-    if (totalAmount < promo.minOrderAmount) {
-      throw new AppError(
-        `Minimum order amount of ${promo.minOrderAmount} not met`,
-        httpStatus.BAD_REQUEST
-      );
-    }
-
-    if (promo.discountType === 'percentage') {
-      discount = (totalAmount * promo.discountValue) / 100;
-      if (promo.maxDiscount && discount > promo.maxDiscount) {
-        discount = promo.maxDiscount;
-      }
-    } else {
-      discount = promo.discountValue;
-    }
-
-    await PromoCode.findByIdAndUpdate(promo._id, { $inc: { usedCount: 1 } });
+    await PromoCode.findOneAndUpdate(
+      { code: promoCode.toUpperCase() },
+      { $inc: { usedCount: 1 } }
+    );
   }
 
   const finalAmount = totalAmount - discount;
@@ -79,6 +54,17 @@ export const createOrder = async (userId, { shippingAddress, promoCode }) => {
 
   cart.items = [];
   await cart.save();
+
+  // Send confirmation email (fire and forget)
+  User.findById(userId).select('name email').lean().then((user) => {
+    if (user) {
+      sendEmail({
+        to: user.email,
+        subject: 'Order Confirmed — REAUX Labs',
+        html: orderConfirmationEmail(user.name, order),
+      }).catch((err) => console.error('Order confirmation email failed:', err.message));
+    }
+  });
 
   return order;
 };

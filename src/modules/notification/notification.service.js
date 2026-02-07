@@ -34,3 +34,12 @@ export const markAsRead = async (notificationId, userId) => {
 
   return notification;
 };
+
+export const markAllAsRead = async (userId) => {
+  const result = await Notification.updateMany(
+    { userId, isRead: false },
+    { isRead: true }
+  );
+
+  return { modifiedCount: result.modifiedCount };
+};

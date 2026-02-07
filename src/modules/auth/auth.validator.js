@@ -27,3 +27,16 @@ export const updateProfileSchema = z.object({
     gender: z.enum(['male', 'female', 'other']).optional(),
   }),
 });
+
+export const forgotPasswordSchema = z.object({
+  body: z.object({
+    email: z.email(),
+  }),
+});
+
+export const resetPasswordSchema = z.object({
+  body: z.object({
+    token: z.string().min(1, 'Token is required'),
+    password: z.string().min(6).max(128),
+  }),
+});

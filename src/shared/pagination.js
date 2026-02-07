@@ -1,6 +1,8 @@
+const MAX_LIMIT = 100;
+
 export const paginate = async (model, query = {}, options = {}) => {
-  const page = parseInt(options.page) || 1;
-  const limit = parseInt(options.limit) || 10;
+  const page = Math.max(1, parseInt(options.page) || 1);
+  const limit = Math.min(MAX_LIMIT, Math.max(1, parseInt(options.limit) || 10));
   const skip = (page - 1) * limit;
   const sort = options.sort || { createdAt: -1 };
 

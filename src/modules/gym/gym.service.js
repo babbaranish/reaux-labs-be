@@ -4,6 +4,7 @@ import { Gym } from './gym.model.js';
 import { User } from '../user/user.model.js';
 import { AppError } from '../../shared/appError.js';
 import { paginate } from '../../shared/pagination.js';
+import { findByIdOrFail, updateByIdOrFail } from '../../shared/crudOperations.js';
 
 export const createGym = async (data, userId) => {
   const slug = slugify(data.name, { lower: true, strict: true });
@@ -32,32 +33,15 @@ export const getGyms = async (query) => {
 };
 
 export const getGymById = async (id) => {
-  const gym = await Gym.findById(id)
-    .populate('createdBy', 'name email')
-    .lean();
-  if (!gym) {
-    throw new AppError('Gym not found', httpStatus.NOT_FOUND);
-  }
-  return gym;
+  return findByIdOrFail(Gym, id, { populate: { path: 'createdBy', select: 'name email' } });
 };
 
 export const updateGym = async (id, data) => {
-  const gym = await Gym.findByIdAndUpdate(id, data, {
-    new: true,
-    runValidators: true,
-  });
-  if (!gym) {
-    throw new AppError('Gym not found', httpStatus.NOT_FOUND);
-  }
-  return gym;
+  return updateByIdOrFail(Gym, id, data);
 };
 
 export const deleteGym = async (id) => {
-  const gym = await Gym.findByIdAndUpdate(id, { isActive: false }, { new: true });
-  if (!gym) {
-    throw new AppError('Gym not found', httpStatus.NOT_FOUND);
-  }
-  return gym;
+  return updateByIdOrFail(Gym, id, { isActive: false });
 };
 
 export const assignAdmin = async (gymId, userId) => {

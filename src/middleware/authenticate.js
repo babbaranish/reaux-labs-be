@@ -15,7 +15,7 @@ export const authenticate = async (req, res, next) => {
 
     let decoded;
     try {
-      decoded = jwt.verify(token, env.JWT_SECRET || 'default-dev-secret');
+      decoded = jwt.verify(token, env.JWT_SECRET);
     } catch (error) {
       return sendError(res, 'Invalid or expired token', httpStatus.UNAUTHORIZED);
     }

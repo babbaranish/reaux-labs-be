@@ -2,13 +2,10 @@ import httpStatus from 'http-status';
 import { Reel } from './reel.model.js';
 import { AppError } from '../../shared/appError.js';
 import { paginate } from '../../shared/pagination.js';
+import { toggleArrayField } from '../../shared/socialToggle.js';
 
 export const createReel = async (data, userId) => {
-  const reel = await Reel.create({
-    ...data,
-    author: userId,
-  });
-  return reel;
+  return Reel.create({ ...data, author: userId });
 };
 
 export const getReels = async (query) => {
@@ -35,26 +32,5 @@ export const getReelById = async (reelId) => {
 };
 
 export const likeReel = async (reelId, userId) => {
-  const alreadyLiked = await Reel.exists({ _id: reelId, likes: userId });
-
-  if (!alreadyLiked) {
-    const reel = await Reel.findOneAndUpdate(
-      { _id: reelId, likes: { $ne: userId } },
-      { $addToSet: { likes: userId }, $inc: { likesCount: 1 } },
-      { new: true }
-    ).select('-likes').lean();
-
-    if (!reel) {
-      throw new AppError('Reel not found', httpStatus.NOT_FOUND);
-    }
-    return reel;
-  }
-
-  const reel = await Reel.findOneAndUpdate(
-    { _id: reelId, likes: userId },
-    { $pull: { likes: userId }, $inc: { likesCount: -1 } },
-    { new: true }
-  ).select('-likes').lean();
-
-  return reel;
+  return toggleArrayField(Reel, reelId, userId, 'likes', { countField: 'likesCount' });
 };

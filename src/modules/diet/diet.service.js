@@ -3,6 +3,8 @@ import slugify from 'slugify';
 import { DietPlan } from './diet.model.js';
 import { AppError } from '../../shared/appError.js';
 import { paginate } from '../../shared/pagination.js';
+import { toggleArrayField } from '../../shared/socialToggle.js';
+import { findByIdOrFail, updateByIdOrFail } from '../../shared/crudOperations.js';
 
 export const createDiet = async (data, userId) => {
   const slug = slugify(data.title, { lower: true, strict: true });
@@ -17,14 +19,7 @@ export const createDiet = async (data, userId) => {
 };
 
 export const updateDiet = async (id, data) => {
-  const diet = await DietPlan.findByIdAndUpdate(id, data, {
-    new: true,
-    runValidators: true,
-  });
-  if (!diet) {
-    throw new AppError('Diet plan not found', httpStatus.NOT_FOUND);
-  }
-  return diet;
+  return updateByIdOrFail(DietPlan, id, data);
 };
 
 export const getDiets = async (query) => {
@@ -48,62 +43,20 @@ export const getDiets = async (query) => {
 };
 
 export const getDietById = async (id) => {
-  const diet = await DietPlan.findById(id)
-    .populate('createdBy', 'name avatar')
-    .select('-likes -followers')
-    .lean();
-  if (!diet) {
-    throw new AppError('Diet plan not found', httpStatus.NOT_FOUND);
-  }
-  return diet;
+  return findByIdOrFail(DietPlan, id, {
+    populate: { path: 'createdBy', select: 'name avatar' },
+    select: '-likes -followers',
+  });
 };
 
 export const followDiet = async (dietId, userId) => {
-  const alreadyFollowing = await DietPlan.exists({ _id: dietId, followers: userId });
-
-  if (!alreadyFollowing) {
-    const diet = await DietPlan.findOneAndUpdate(
-      { _id: dietId, followers: { $ne: userId } },
-      { $addToSet: { followers: userId } },
-      { new: true }
-    ).select('-likes -followers').lean();
-
-    if (!diet) {
-      throw new AppError('Diet plan not found', httpStatus.NOT_FOUND);
-    }
-    return diet;
-  }
-
-  const diet = await DietPlan.findOneAndUpdate(
-    { _id: dietId, followers: userId },
-    { $pull: { followers: userId } },
-    { new: true }
-  ).select('-likes -followers').lean();
-
-  return diet;
+  return toggleArrayField(DietPlan, dietId, userId, 'followers', {
+    selectExclude: '-likes -followers',
+  });
 };
 
 export const likeDiet = async (dietId, userId) => {
-  const alreadyLiked = await DietPlan.exists({ _id: dietId, likes: userId });
-
-  if (!alreadyLiked) {
-    const diet = await DietPlan.findOneAndUpdate(
-      { _id: dietId, likes: { $ne: userId } },
-      { $addToSet: { likes: userId } },
-      { new: true }
-    ).select('-likes -followers').lean();
-
-    if (!diet) {
-      throw new AppError('Diet plan not found', httpStatus.NOT_FOUND);
-    }
-    return diet;
-  }
-
-  const diet = await DietPlan.findOneAndUpdate(
-    { _id: dietId, likes: userId },
-    { $pull: { likes: userId } },
-    { new: true }
-  ).select('-likes -followers').lean();
-
-  return diet;
+  return toggleArrayField(DietPlan, dietId, userId, 'likes', {
+    selectExclude: '-likes -followers',
+  });
 };

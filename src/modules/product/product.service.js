@@ -1,7 +1,6 @@
-import httpStatus from 'http-status';
 import { Product } from './product.model.js';
-import { AppError } from '../../shared/appError.js';
 import { paginate } from '../../shared/pagination.js';
+import { findByIdOrFail, updateByIdOrFail } from '../../shared/crudOperations.js';
 
 export const createProduct = async (data, userId) => {
   const product = await Product.create({
@@ -31,20 +30,9 @@ export const getProducts = async (query) => {
 };
 
 export const getProductById = async (id) => {
-  const product = await Product.findById(id).lean();
-  if (!product) {
-    throw new AppError('Product not found', httpStatus.NOT_FOUND);
-  }
-  return product;
+  return findByIdOrFail(Product, id);
 };
 
 export const updateProduct = async (id, data) => {
-  const product = await Product.findByIdAndUpdate(id, data, {
-    new: true,
-    runValidators: true,
-  });
-  if (!product) {
-    throw new AppError('Product not found', httpStatus.NOT_FOUND);
-  }
-  return product;
+  return updateByIdOrFail(Product, id, data);
 };
