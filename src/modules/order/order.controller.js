@@ -14,6 +14,11 @@ export const getMyOrders = asyncHandler(async (req, res) => {
   return sendPaginated(res, data, pagination);
 });
 
+export const getAllOrders = asyncHandler(async (req, res) => {
+  const { data, pagination } = await orderService.getAllOrders(req.query);
+  return sendPaginated(res, data, pagination);
+});
+
 export const getOrderById = asyncHandler(async (req, res) => {
   const order = await orderService.getOrderById(req.params.id, req.user.id);
   return sendSuccess(res, order);

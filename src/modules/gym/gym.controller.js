@@ -4,7 +4,14 @@ import { sendSuccess, sendPaginated } from '../../shared/response.js';
 import { asyncHandler } from '../../middleware/asyncHandler.js';
 
 export const create = asyncHandler(async (req, res) => {
-  const gym = await gymService.createGym(req.body, req.user.id);
+  const data = { ...req.body };
+  if (req.files?.images?.length) {
+    data.images = req.files.images.map((f) => f.path);
+  }
+  if (req.files?.logo?.length) {
+    data.logo = req.files.logo[0].path;
+  }
+  const gym = await gymService.createGym(data, req.user.id);
   return sendSuccess(res, gym, httpStatus.CREATED, 'Gym created successfully');
 });
 
@@ -19,7 +26,14 @@ export const getById = asyncHandler(async (req, res) => {
 });
 
 export const update = asyncHandler(async (req, res) => {
-  const gym = await gymService.updateGym(req.params.id, req.body);
+  const data = { ...req.body };
+  if (req.files?.images?.length) {
+    data.images = req.files.images.map((f) => f.path);
+  }
+  if (req.files?.logo?.length) {
+    data.logo = req.files.logo[0].path;
+  }
+  const gym = await gymService.updateGym(req.params.id, data);
   return sendSuccess(res, gym, httpStatus.OK, 'Gym updated successfully');
 });
 

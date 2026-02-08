@@ -15,16 +15,29 @@ const mealSchema = z.object({
   items: z.array(mealItemSchema).optional(),
 });
 
+// Helper: parse JSON string or pass through array (for multipart form data support)
+const jsonArrayOrArray = (itemSchema) =>
+  z.union([
+    z.array(itemSchema),
+    z.string().transform((val) => JSON.parse(val)).pipe(z.array(itemSchema)),
+  ]);
+
+// Helper: boolean that also accepts string "true"/"false" (multipart form data)
+const coerceBool = z.union([
+  z.boolean(),
+  z.string().transform((val) => val === 'true'),
+]);
+
 export const createDietSchema = z.object({
   body: z.object({
     title: z.string().min(2).max(200),
     category: z.enum(['weight-loss', 'muscle-gain', 'maintenance', 'keto', 'vegan', 'other']),
     description: z.string().max(2000).optional(),
-    meals: z.array(mealSchema).optional(),
+    meals: jsonArrayOrArray(mealSchema).optional(),
     image: z.string().optional(),
-    totalCalories: z.number().positive().optional(),
-    tags: z.array(z.string()).optional(),
-    isPublished: z.boolean().optional(),
+    totalCalories: z.coerce.number().positive().optional(),
+    tags: jsonArrayOrArray(z.string()).optional(),
+    isPublished: coerceBool.optional(),
   }),
 });
 
@@ -33,10 +46,10 @@ export const updateDietSchema = z.object({
     title: z.string().min(2).max(200).optional(),
     category: z.enum(['weight-loss', 'muscle-gain', 'maintenance', 'keto', 'vegan', 'other']).optional(),
     description: z.string().max(2000).optional(),
-    meals: z.array(mealSchema).optional(),
+    meals: jsonArrayOrArray(mealSchema).optional(),
     image: z.string().optional(),
-    totalCalories: z.number().positive().optional(),
-    tags: z.array(z.string()).optional(),
-    isPublished: z.boolean().optional(),
+    totalCalories: z.coerce.number().positive().optional(),
+    tags: jsonArrayOrArray(z.string()).optional(),
+    isPublished: coerceBool.optional(),
   }),
 });

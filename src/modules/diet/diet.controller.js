@@ -4,11 +4,17 @@ import { sendSuccess, sendPaginated } from '../../shared/response.js';
 import { asyncHandler } from '../../middleware/asyncHandler.js';
 
 export const create = asyncHandler(async (req, res) => {
+  if (req.file?.path) {
+    req.body.image = req.file.path;
+  }
   const diet = await dietService.createDiet(req.body, req.user.id);
   return sendSuccess(res, diet, httpStatus.CREATED, 'Diet plan created successfully');
 });
 
 export const update = asyncHandler(async (req, res) => {
+  if (req.file?.path) {
+    req.body.image = req.file.path;
+  }
   const diet = await dietService.updateDiet(req.params.id, req.body);
   return sendSuccess(res, diet, httpStatus.OK, 'Diet plan updated successfully');
 });

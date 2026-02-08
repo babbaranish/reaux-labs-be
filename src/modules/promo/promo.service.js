@@ -1,6 +1,25 @@
 import httpStatus from 'http-status';
 import { PromoCode } from './promo.model.js';
 import { AppError } from '../../shared/appError.js';
+import { paginate } from '../../shared/pagination.js';
+
+export const listPromos = async (query) => {
+  const filter = {};
+
+  if (query.isActive !== undefined) {
+    filter.isActive = query.isActive === 'true';
+  }
+
+  if (query.search) {
+    filter.code = { $regex: query.search, $options: 'i' };
+  }
+
+  return paginate(PromoCode, filter, {
+    page: query.page,
+    limit: query.limit,
+    sort: { createdAt: -1 },
+  });
+};
 
 export const createPromo = async (data, userId) => {
   const promo = await PromoCode.create({

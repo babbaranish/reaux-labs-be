@@ -1,7 +1,12 @@
 import httpStatus from 'http-status';
 import * as promoService from './promo.service.js';
-import { sendSuccess } from '../../shared/response.js';
+import { sendSuccess, sendPaginated } from '../../shared/response.js';
 import { asyncHandler } from '../../middleware/asyncHandler.js';
+
+export const listPromos = asyncHandler(async (req, res) => {
+  const { data, pagination } = await promoService.listPromos(req.query);
+  return sendPaginated(res, data, pagination);
+});
 
 export const createPromo = asyncHandler(async (req, res) => {
   const promo = await promoService.createPromo(req.body, req.user.id);

@@ -7,6 +7,12 @@ import { createPromoSchema, validatePromoSchema } from './promo.validator.js';
 
 const router = Router();
 
+router.get(
+  '/',
+  authenticate,
+  authorize('admin', 'superadmin'),
+  promoController.listPromos
+);
 router.post(
   '/create',
   authenticate,

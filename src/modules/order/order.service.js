@@ -77,6 +77,15 @@ export const getMyOrders = async (userId, query) => {
   });
 };
 
+export const getAllOrders = async (query) => {
+  return paginate(Order, {}, {
+    page: query.page,
+    limit: query.limit,
+    sort: { createdAt: -1 },
+    populate: { path: 'userId', select: 'name email' },
+  });
+};
+
 export const getOrderById = async (id, userId) => {
   const order = await Order.findById(id).lean();
   if (!order) {

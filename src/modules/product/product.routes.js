@@ -11,6 +11,6 @@ const router = Router();
 router.get('/', productController.list);
 router.get('/:id', productController.getById);
 router.post('/', authenticate, authorize('admin', 'superadmin'), uploadProductImages.array('images', 5), validate(createProductSchema), productController.create);
-router.put('/:id', authenticate, authorize('admin', 'superadmin'), validate(updateProductSchema), productController.update);
+router.put('/:id', authenticate, authorize('admin', 'superadmin'), uploadProductImages.array('images', 5), validate(updateProductSchema), productController.update);
 
 export default router;

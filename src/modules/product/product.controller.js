@@ -23,6 +23,18 @@ export const getById = asyncHandler(async (req, res) => {
 });
 
 export const update = asyncHandler(async (req, res) => {
-  const product = await productService.updateProduct(req.params.id, req.body);
+  const data = { ...req.body };
+  if (req.files?.length) {
+    // Merge existing images (sent from frontend) with newly uploaded ones
+    const existing = Array.isArray(data.existingImages)
+      ? data.existingImages
+      : data.existingImages
+        ? [data.existingImages]
+        : [];
+    const uploaded = req.files.map((f) => f.path);
+    data.images = [...existing, ...uploaded];
+    delete data.existingImages;
+  }
+  const product = await productService.updateProduct(req.params.id, data);
   return sendSuccess(res, product, httpStatus.OK, 'Product updated');
 });
