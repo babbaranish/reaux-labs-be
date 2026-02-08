@@ -3,6 +3,7 @@ import { AppError } from './appError.js';
 
 /**
  * Toggle a user in an array field (like/follow/bookmark) with atomic operations.
+ * Uses a single findOneAndUpdate per attempt to avoid race conditions.
  * @param {Model} model - Mongoose model
  * @param {string} resourceId - Document ID
  * @param {string} userId - User ID to toggle
@@ -15,24 +16,24 @@ export const toggleArrayField = async (model, resourceId, userId, field, options
   const { countField = null, selectExclude = null } = options;
   const select = selectExclude || `-${field}`;
 
-  const alreadyExists = await model.exists({ _id: resourceId, [field]: userId });
-
-  const updateOp = alreadyExists
-    ? { $pull: { [field]: userId }, ...(countField && { $inc: { [countField]: -1 } }) }
-    : { $addToSet: { [field]: userId }, ...(countField && { $inc: { [countField]: 1 } }) };
-
-  const query = alreadyExists
-    ? { _id: resourceId, [field]: userId }
-    : { _id: resourceId, [field]: { $ne: userId } };
-
-  const resource = await model
-    .findOneAndUpdate(query, updateOp, { new: true })
+  // Try to remove the user (they already liked/followed) — atomic
+  const pullOp = { $pull: { [field]: userId }, ...(countField && { $inc: { [countField]: -1 } }) };
+  const pulled = await model
+    .findOneAndUpdate({ _id: resourceId, [field]: userId }, pullOp, { new: true })
     .select(select)
     .lean();
 
-  if (!resource) {
-    throw new AppError(`${model.modelName} not found`, httpStatus.NOT_FOUND);
-  }
+  if (pulled) return pulled;
 
-  return resource;
+  // User wasn't in the array — add them atomically
+  const addOp = { $addToSet: { [field]: userId }, ...(countField && { $inc: { [countField]: 1 } }) };
+  const added = await model
+    .findOneAndUpdate({ _id: resourceId, [field]: { $ne: userId } }, addOp, { new: true })
+    .select(select)
+    .lean();
+
+  if (added) return added;
+
+  // Neither matched — document doesn't exist
+  throw new AppError(`${model.modelName} not found`, httpStatus.NOT_FOUND);
 };
