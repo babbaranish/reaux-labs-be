@@ -3,7 +3,7 @@ import { Post } from './post.model.js';
 import { Comment } from './comment.model.js';
 import { AppError } from '../../shared/appError.js';
 import { paginate } from '../../shared/pagination.js';
-import { toggleArrayField } from '../../shared/socialToggle.js';
+import { toggleArrayField, addIsLiked } from '../../shared/socialToggle.js';
 
 const extractHashtags = (content) => {
   const matches = content.match(/#(\w+)/g);
@@ -21,7 +21,7 @@ export const createPost = async (data, userId) => {
   return post;
 };
 
-export const getPosts = async (query) => {
+export const getPosts = async (query, userId) => {
   const filter = {};
 
   if (query.hashtag) {
@@ -32,18 +32,21 @@ export const getPosts = async (query) => {
     filter.category = query.category;
   }
 
-  return paginate(Post, filter, {
+  const result = await paginate(Post, filter, {
     page: query.page,
     limit: query.limit,
-    populate: { path: 'author', select: 'name avatar' },
+    populate: { path: 'author', select: 'name avatar role' },
     select: '-likes',
   });
+
+  result.data = await addIsLiked(Post, result.data, userId);
+  return result;
 };
 
-export const getPostById = async (id) => {
+export const getPostById = async (id, userId) => {
   const [post, comments] = await Promise.all([
     Post.findById(id)
-      .populate('author', 'name avatar')
+      .populate('author', 'name avatar role')
       .select('-likes')
       .lean(),
     Comment.find({ postId: id })
@@ -57,7 +60,8 @@ export const getPostById = async (id) => {
     throw new AppError('Post not found', httpStatus.NOT_FOUND);
   }
 
-  return { post, comments };
+  const [enriched] = await addIsLiked(Post, [post], userId);
+  return { post: enriched, comments };
 };
 
 export const likePost = async (postId, userId) => {

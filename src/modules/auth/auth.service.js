@@ -59,7 +59,7 @@ export const getProfile = async (userId) => {
 };
 
 export const updateProfile = async (userId, updates) => {
-  const allowedFields = ['name', 'phone', 'height', 'weight', 'dateOfBirth', 'gender'];
+  const allowedFields = ['name', 'phone', 'height', 'weight', 'dateOfBirth', 'gender', 'avatar'];
   const filteredUpdates = {};
   for (const key of allowedFields) {
     if (updates[key] !== undefined) filteredUpdates[key] = updates[key];

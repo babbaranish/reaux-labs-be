@@ -9,12 +9,12 @@ export const create = asyncHandler(async (req, res) => {
 });
 
 export const list = asyncHandler(async (req, res) => {
-  const { data, pagination } = await postService.getPosts(req.query);
+  const { data, pagination } = await postService.getPosts(req.query, req.user.id);
   return sendPaginated(res, data, pagination);
 });
 
 export const getById = asyncHandler(async (req, res) => {
-  const result = await postService.getPostById(req.params.id);
+  const result = await postService.getPostById(req.params.id, req.user.id);
   return sendSuccess(res, result);
 });
 

@@ -4,6 +4,7 @@ import { AppError } from './appError.js';
 /**
  * Toggle a user in an array field (like/follow/bookmark) with atomic operations.
  * Uses a single findOneAndUpdate per attempt to avoid race conditions.
+ * Returns the resource with an `isLiked` (or `isFollowed`) boolean.
  * @param {Model} model - Mongoose model
  * @param {string} resourceId - Document ID
  * @param {string} userId - User ID to toggle
@@ -23,7 +24,7 @@ export const toggleArrayField = async (model, resourceId, userId, field, options
     .select(select)
     .lean();
 
-  if (pulled) return pulled;
+  if (pulled) return { ...pulled, isLiked: false };
 
   // User wasn't in the array — add them atomically
   const addOp = { $addToSet: { [field]: userId }, ...(countField && { $inc: { [countField]: 1 } }) };
@@ -32,8 +33,28 @@ export const toggleArrayField = async (model, resourceId, userId, field, options
     .select(select)
     .lean();
 
-  if (added) return added;
+  if (added) return { ...added, isLiked: true };
 
   // Neither matched — document doesn't exist
   throw new AppError(`${model.modelName} not found`, httpStatus.NOT_FOUND);
+};
+
+/**
+ * Add `isLiked` to each document based on whether the user is in the likes array.
+ * Efficient: uses a single query with $in to find which docs the user liked.
+ * @param {Model} model - Mongoose model
+ * @param {Array} docs - Array of lean documents
+ * @param {string} userId - Current user ID
+ * @param {string} [field='likes'] - Array field to check
+ */
+export const addIsLiked = async (model, docs, userId, field = 'likes') => {
+  if (!userId || docs.length === 0) return docs;
+
+  const ids = docs.map((d) => d._id);
+  const likedIds = await model
+    .find({ _id: { $in: ids }, [field]: userId })
+    .distinct('_id');
+
+  const likedSet = new Set(likedIds.map((id) => id.toString()));
+  return docs.map((d) => ({ ...d, isLiked: likedSet.has(d._id.toString()) }));
 };

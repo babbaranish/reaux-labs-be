@@ -6,20 +6,22 @@ import { asyncHandler } from '../../middleware/asyncHandler.js';
 export const create = asyncHandler(async (req, res) => {
   const data = {
     caption: req.body.caption,
-    linkedProduct: req.body.linkedProduct,
     videoUrl: req.file?.path || req.body.videoUrl,
   };
+  if (req.body.linkedProduct) {
+    data.linkedProduct = req.body.linkedProduct;
+  }
   const reel = await reelService.createReel(data, req.user.id);
   return sendSuccess(res, reel, httpStatus.CREATED, 'Reel created');
 });
 
 export const list = asyncHandler(async (req, res) => {
-  const { data, pagination } = await reelService.getReels(req.query);
+  const { data, pagination } = await reelService.getReels(req.query, req.user?.id);
   return sendPaginated(res, data, pagination);
 });
 
 export const getById = asyncHandler(async (req, res) => {
-  const reel = await reelService.getReelById(req.params.id);
+  const reel = await reelService.getReelById(req.params.id, req.user?.id);
   return sendSuccess(res, reel, httpStatus.OK);
 });
 

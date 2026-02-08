@@ -20,7 +20,11 @@ export const getMe = asyncHandler(async (req, res) => {
 });
 
 export const updateProfile = asyncHandler(async (req, res) => {
-  const user = await authService.updateProfile(req.user.id, req.body);
+  const updates = { ...req.body };
+  if (req.file?.path) {
+    updates.avatar = req.file.path;
+  }
+  const user = await authService.updateProfile(req.user.id, updates);
   return sendSuccess(res, user, httpStatus.OK, 'Profile updated');
 });
 
