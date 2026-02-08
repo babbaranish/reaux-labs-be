@@ -4,7 +4,11 @@ import { sendSuccess, sendPaginated } from '../../shared/response.js';
 import { asyncHandler } from '../../middleware/asyncHandler.js';
 
 export const create = asyncHandler(async (req, res) => {
-  const product = await productService.createProduct(req.body, req.user.id);
+  const data = { ...req.body };
+  if (req.files?.length) {
+    data.images = req.files.map((f) => f.path);
+  }
+  const product = await productService.createProduct(data, req.user.id);
   return sendSuccess(res, product, httpStatus.CREATED, 'Product created');
 });
 
