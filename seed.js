@@ -10,7 +10,7 @@ const db = mongoose.connection.db;
 console.log('Connected to MongoDB\n');
 
 // ─── Clear all collections ───
-const collections = ['users', 'gyms', 'bmirecords', 'dietplans', 'posts', 'comments', 'reels', 'products', 'carts', 'orders', 'promocodes', 'challenges', 'notifications'];
+const collections = ['users', 'gyms', 'bmirecords', 'dietplans', 'posts', 'comments', 'reels', 'products', 'carts', 'orders', 'promocodes', 'challenges', 'notifications', 'membershipplans', 'usermemberships'];
 for (const col of collections) {
   await db.collection(col).deleteMany({});
 }
@@ -761,6 +761,160 @@ await db.collection('challenges').insertMany(challenges);
 console.log(`  Challenges: ${challenges.length} inserted`);
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  MEMBERSHIP PLANS & USER MEMBERSHIPS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const plan1Id = oid();
+const plan2Id = oid();
+const plan3Id = oid();
+const plan4Id = oid();
+const plan5Id = oid();
+const plan6Id = oid();
+
+const membershipPlans = [
+  // Delhi gym plans
+  {
+    _id: plan1Id,
+    name: 'Basic Monthly',
+    gymId: gym1Id,
+    durationDays: 30,
+    price: 1500,
+    features: ['Gym Floor Access', 'Locker Room'],
+    description: 'Basic gym access for 30 days. Ideal for beginners.',
+    isActive: true,
+    createdBy: superAdminId,
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-01'),
+  },
+  {
+    _id: plan2Id,
+    name: 'Premium Quarterly',
+    gymId: gym1Id,
+    durationDays: 90,
+    price: 3999,
+    features: ['Gym Floor Access', 'Locker Room', 'Sauna', 'Pool', 'Personal Trainer (2 sessions)'],
+    description: 'Full access to all amenities including pool and sauna for 3 months.',
+    isActive: true,
+    createdBy: superAdminId,
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-01'),
+  },
+  {
+    _id: plan3Id,
+    name: 'Elite Yearly',
+    gymId: gym1Id,
+    durationDays: 365,
+    price: 12999,
+    features: ['Gym Floor Access', 'Locker Room', 'Sauna', 'Pool', 'Personal Trainer (unlimited)', 'Nutrition Plan', 'Priority Booking'],
+    description: 'Unlimited yearly access with personal trainer and nutrition guidance.',
+    isActive: true,
+    createdBy: superAdminId,
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-01'),
+  },
+  // Mumbai gym plans
+  {
+    _id: plan4Id,
+    name: 'Basic Monthly',
+    gymId: gym2Id,
+    durationDays: 30,
+    price: 1800,
+    features: ['Gym Floor Access', 'Locker Room'],
+    description: 'Basic gym access for 30 days.',
+    isActive: true,
+    createdBy: superAdminId,
+    createdAt: new Date('2026-01-05'),
+    updatedAt: new Date('2026-01-05'),
+  },
+  {
+    _id: plan5Id,
+    name: 'Premium Quarterly',
+    gymId: gym2Id,
+    durationDays: 90,
+    price: 4499,
+    features: ['Gym Floor Access', 'Locker Room', 'Steam Room', 'CrossFit', 'Personal Trainer (4 sessions)'],
+    description: 'Full access including CrossFit and steam room for 3 months.',
+    isActive: true,
+    createdBy: superAdminId,
+    createdAt: new Date('2026-01-05'),
+    updatedAt: new Date('2026-01-05'),
+  },
+  // Bangalore gym plan
+  {
+    _id: plan6Id,
+    name: 'Premium Half-Yearly',
+    gymId: gym3Id,
+    durationDays: 180,
+    price: 6999,
+    features: ['Gym Floor Access', 'Locker Room', 'Sauna', 'Yoga Studio', 'AI Workout Tracking'],
+    description: '6-month premium access with smart equipment tracking.',
+    isActive: true,
+    createdBy: superAdminId,
+    createdAt: new Date('2026-01-10'),
+    updatedAt: new Date('2026-01-10'),
+  },
+];
+
+const userMemberships = [
+  // Arjun - active Elite Yearly at Delhi gym
+  {
+    _id: oid(),
+    userId: user1Id,
+    planId: plan3Id,
+    gymId: gym1Id,
+    startDate: new Date('2026-01-15'),
+    endDate: new Date('2027-01-15'),
+    status: 'active',
+    assignedBy: admin1Id,
+    createdAt: new Date('2026-01-15'),
+    updatedAt: new Date('2026-01-15'),
+  },
+  // Sneha - active Premium Quarterly at Mumbai gym
+  {
+    _id: oid(),
+    userId: user2Id,
+    planId: plan5Id,
+    gymId: gym2Id,
+    startDate: new Date('2026-01-20'),
+    endDate: new Date('2026-04-20'),
+    status: 'active',
+    assignedBy: admin2Id,
+    createdAt: new Date('2026-01-20'),
+    updatedAt: new Date('2026-01-20'),
+  },
+  // Vikram - expired Basic Monthly at Delhi gym (then renewed)
+  {
+    _id: oid(),
+    userId: user3Id,
+    planId: plan1Id,
+    gymId: gym1Id,
+    startDate: new Date('2025-12-01'),
+    endDate: new Date('2025-12-31'),
+    status: 'expired',
+    assignedBy: admin1Id,
+    createdAt: new Date('2025-12-01'),
+    updatedAt: new Date('2026-01-01'),
+  },
+  // Vikram - active Premium Quarterly at Delhi gym (renewal)
+  {
+    _id: oid(),
+    userId: user3Id,
+    planId: plan2Id,
+    gymId: gym1Id,
+    startDate: new Date('2026-01-05'),
+    endDate: new Date('2026-04-05'),
+    status: 'active',
+    assignedBy: admin1Id,
+    createdAt: new Date('2026-01-05'),
+    updatedAt: new Date('2026-01-05'),
+  },
+];
+
+await db.collection('membershipplans').insertMany(membershipPlans);
+await db.collection('usermemberships').insertMany(userMemberships);
+console.log(`  Membership Plans: ${membershipPlans.length} inserted`);
+console.log(`  User Memberships: ${userMemberships.length} inserted`);
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  NOTIFICATIONS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const notifications = [
@@ -784,19 +938,21 @@ console.log('\n=========================================');
 console.log('  Seed Complete!');
 console.log('=========================================');
 console.log(`
-  Users:          ${users.length} (1 superadmin, 2 admins, 3 users)
-  Gyms:           ${gyms.length}
-  BMI Records:    ${bmiRecords.length}
-  Diet Plans:     ${dietPlans.length}
-  Posts:          ${posts.length}
-  Comments:       ${comments.length}
-  Reels:          ${reels.length}
-  Products:       ${products.length}
-  Carts:          ${carts.length}
-  Orders:         ${orders.length}
-  Promo Codes:    ${promoCodes.length}
-  Challenges:     ${challenges.length}
-  Notifications:  ${notifications.length}
+  Users:              ${users.length} (1 superadmin, 2 admins, 3 users)
+  Gyms:               ${gyms.length}
+  BMI Records:        ${bmiRecords.length}
+  Diet Plans:         ${dietPlans.length}
+  Posts:              ${posts.length}
+  Comments:           ${comments.length}
+  Reels:              ${reels.length}
+  Products:           ${products.length}
+  Carts:              ${carts.length}
+  Orders:             ${orders.length}
+  Promo Codes:        ${promoCodes.length}
+  Challenges:         ${challenges.length}
+  Membership Plans:   ${membershipPlans.length}
+  User Memberships:   ${userMemberships.length}
+  Notifications:      ${notifications.length}
 
   All passwords: Pass1234
 

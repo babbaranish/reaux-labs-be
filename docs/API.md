@@ -25,7 +25,8 @@
 15. [Promo Codes](#11-promo-codes)
 16. [Challenges](#12-challenges)
 17. [Notifications](#13-notifications)
-18. [Analytics (Admin)](#14-analytics-admin)
+18. [Memberships](#14-memberships)
+19. [Analytics (Admin)](#15-analytics-admin)
 
 ---
 
@@ -3241,11 +3242,362 @@ Marks all unread notifications for the authenticated user as read in a single op
 
 ---
 
-## 14. Analytics (Admin)
+### 13.4 Register FCM Device Token
+
+```
+POST /api/notifications/fcm-token
+```
+
+**Auth:** Bearer Token (any role)
+
+Registers a Firebase Cloud Messaging token for push notifications. Supports multiple devices per user (uses `$addToSet` to prevent duplicates).
+
+**Request Body:**
+
+```json
+{
+  "token": "fcm-device-token-string"
+}
+```
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "FCM token registered"
+}
+```
+
+---
+
+### 13.5 Remove FCM Device Token
+
+```
+DELETE /api/notifications/fcm-token
+```
+
+**Auth:** Bearer Token (any role)
+
+Removes an FCM device token (call on logout).
+
+**Request Body:**
+
+```json
+{
+  "token": "fcm-device-token-string"
+}
+```
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "FCM token removed"
+}
+```
+
+---
+
+## 14. Memberships
+
+Base path: `/api/memberships`
+
+The membership system has two layers: **Membership Plans** (templates created by SuperAdmin) and **User Memberships** (subscriptions assigned by Admins). Plans are gym-specific.
+
+### 14.1 Create Membership Plan
+
+```
+POST /api/memberships/plans
+```
+
+**Auth:** Bearer Token
+**Role:** `superadmin`
+
+**Request Body:**
+
+```json
+{
+  "name": "Premium Quarterly",
+  "gymId": "665f1a2b3c4d5e6f7a8b9c0d",
+  "durationDays": 90,
+  "price": 3999,
+  "features": ["Gym Floor Access", "Pool", "Personal Trainer (2 sessions)"],
+  "description": "Full access to all amenities for 3 months."
+}
+```
+
+| Field          | Type     | Required | Description                          |
+|----------------|----------|----------|--------------------------------------|
+| `name`         | string   | Yes      | Plan name                            |
+| `gymId`        | string   | Yes      | Gym this plan belongs to             |
+| `durationDays` | number   | Yes      | Duration in days (30, 90, 180, 365)  |
+| `price`        | number   | Yes      | Price in INR                         |
+| `features`     | string[] | No       | List of included features            |
+| `description`  | string   | No       | Plan description                     |
+
+**Success Response (201 Created):**
+
+```json
+{
+  "success": true,
+  "message": "Membership plan created",
+  "data": {
+    "_id": "...",
+    "name": "Premium Quarterly",
+    "gymId": "665f1a2b3c4d5e6f7a8b9c0d",
+    "durationDays": 90,
+    "price": 3999,
+    "features": ["Gym Floor Access", "Pool", "Personal Trainer (2 sessions)"],
+    "description": "Full access to all amenities for 3 months.",
+    "isActive": true,
+    "createdBy": "...",
+    "createdAt": "...",
+    "updatedAt": "..."
+  }
+}
+```
+
+---
+
+### 14.2 List Membership Plans
+
+```
+GET /api/memberships/plans
+```
+
+**Auth:** Bearer Token
+**Role:** `admin` or `superadmin`
+
+Admins see only plans for their gym. SuperAdmin sees all plans (optionally filter by `gymId`).
+
+**Query Parameters:**
+
+| Parameter | Type   | Default | Description                     |
+|-----------|--------|---------|---------------------------------|
+| `gymId`   | string | —       | Filter by gym (superadmin only) |
+| `page`    | number | 1       | Page number                     |
+| `limit`   | number | 10      | Results per page (max 100)      |
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "...",
+      "name": "Basic Monthly",
+      "gymId": { "_id": "...", "name": "REAUX Fitness Delhi", "slug": "reaux-fitness-delhi" },
+      "durationDays": 30,
+      "price": 1500,
+      "features": ["Gym Floor Access", "Locker Room"],
+      "description": "Basic gym access for 30 days.",
+      "isActive": true
+    }
+  ],
+  "pagination": { "page": 1, "limit": 10, "total": 3, "pages": 1 }
+}
+```
+
+---
+
+### 14.3 Get Membership Plan by ID
+
+```
+GET /api/memberships/plans/:id
+```
+
+**Auth:** Bearer Token
+**Role:** `admin` or `superadmin`
+
+---
+
+### 14.4 Update Membership Plan
+
+```
+PUT /api/memberships/plans/:id
+```
+
+**Auth:** Bearer Token
+**Role:** `superadmin`
+
+**Request Body (all fields optional):**
+
+```json
+{
+  "name": "Basic Monthly (Updated)",
+  "price": 1799,
+  "features": ["Gym Floor Access", "Locker Room", "Wifi"],
+  "isActive": false
+}
+```
+
+---
+
+### 14.5 Delete Membership Plan (Soft Delete)
+
+```
+DELETE /api/memberships/plans/:id
+```
+
+**Auth:** Bearer Token
+**Role:** `superadmin`
+
+Sets `isActive: false`. Plan is no longer returned in list queries.
+
+---
+
+### 14.6 Assign Membership to User
+
+```
+POST /api/memberships/assign
+```
+
+**Auth:** Bearer Token
+**Role:** `admin` or `superadmin`
+
+Assigns a plan to a user. The `endDate` is auto-calculated as `startDate + plan.durationDays`. If no `startDate` is provided, defaults to today. Sends a push notification to the user.
+
+Admins can only assign plans belonging to their gym.
+
+**Request Body:**
+
+```json
+{
+  "userId": "665f1a2b3c4d5e6f7a8b9c0d",
+  "planId": "665f1a2b3c4d5e6f7a8b9c0e",
+  "startDate": "2026-03-01"
+}
+```
+
+| Field       | Type   | Required | Description                         |
+|-------------|--------|----------|-------------------------------------|
+| `userId`    | string | Yes      | User to assign the membership to    |
+| `planId`    | string | Yes      | Plan to assign                      |
+| `startDate` | string | No       | ISO date string, defaults to today  |
+
+**Success Response (201 Created):**
+
+```json
+{
+  "success": true,
+  "message": "Membership assigned",
+  "data": {
+    "_id": "...",
+    "userId": "...",
+    "planId": "...",
+    "gymId": "...",
+    "startDate": "2026-03-01T00:00:00.000Z",
+    "endDate": "2026-05-30T00:00:00.000Z",
+    "status": "active",
+    "assignedBy": "..."
+  }
+}
+```
+
+---
+
+### 14.7 List User Memberships
+
+```
+GET /api/memberships
+```
+
+**Auth:** Bearer Token
+**Role:** `admin` or `superadmin`
+
+Admins see only memberships for their gym. SuperAdmin sees all.
+
+**Query Parameters:**
+
+| Parameter | Type   | Default | Description                                |
+|-----------|--------|---------|--------------------------------------------|
+| `gymId`   | string | —       | Filter by gym (superadmin only)            |
+| `userId`  | string | —       | Filter by user                             |
+| `status`  | string | —       | Filter: `active`, `expired`, `cancelled`   |
+| `page`    | number | 1       | Page number                                |
+| `limit`   | number | 10      | Results per page (max 100)                 |
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "...",
+      "userId": { "_id": "...", "name": "Arjun Mehta", "email": "arjun@gmail.com", "avatar": "..." },
+      "planId": { "_id": "...", "name": "Elite Yearly", "durationDays": 365, "price": 12999, "features": ["..."] },
+      "gymId": { "_id": "...", "name": "REAUX Fitness Delhi", "slug": "reaux-fitness-delhi" },
+      "startDate": "2026-01-15T00:00:00.000Z",
+      "endDate": "2027-01-15T00:00:00.000Z",
+      "status": "active",
+      "assignedBy": "..."
+    }
+  ],
+  "pagination": { "page": 1, "limit": 10, "total": 4, "pages": 1 }
+}
+```
+
+---
+
+### 14.8 Get My Memberships
+
+```
+GET /api/memberships/my
+```
+
+**Auth:** Bearer Token (any role)
+
+Returns the authenticated user's own memberships with plan and gym details populated.
+
+---
+
+### 14.9 Get Membership by ID
+
+```
+GET /api/memberships/:id
+```
+
+**Auth:** Bearer Token
+**Role:** `admin` or `superadmin`
+
+---
+
+### 14.10 Cancel Membership
+
+```
+PATCH /api/memberships/:id/cancel
+```
+
+**Auth:** Bearer Token
+**Role:** `admin` or `superadmin`
+
+Sets membership status to `cancelled`. Cannot cancel an already-cancelled membership. Admins can only cancel memberships for their gym. Sends a push notification to the user.
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "Membership cancelled",
+  "data": {
+    "_id": "...",
+    "status": "cancelled",
+    "updatedAt": "..."
+  }
+}
+```
+
+---
+
+## 15. Analytics (Admin)
 
 Base path: `/api/admin`
 
-### 14.1 Get Platform Stats
+### 15.1 Get Platform Stats
 
 ```
 GET /api/admin/stats
@@ -3283,7 +3635,7 @@ Returns aggregate counts of key platform entities.
 
 ---
 
-### 14.2 Get Sales Report
+### 15.2 Get Sales Report
 
 ```
 GET /api/admin/sales-report
@@ -3426,6 +3778,14 @@ Returns comprehensive sales analytics including overall stats, monthly breakdown
 | `keto`         | Ketogenic diet plans         |
 | `vegan`        | Plant-based diet plans       |
 | `other`        | Other/custom diet plans      |
+
+## Appendix: Membership Statuses
+
+| Status      | Description                                    |
+|-------------|------------------------------------------------|
+| `active`    | Currently valid membership                     |
+| `expired`   | Past the end date                              |
+| `cancelled` | Manually cancelled by admin/superadmin         |
 
 ## Appendix: Challenge Types
 
