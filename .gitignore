@@ -8,3 +8,4 @@ CLAUDE*
 package-lock.json
 *.mp4
 .claude
+firebase-service-account.json

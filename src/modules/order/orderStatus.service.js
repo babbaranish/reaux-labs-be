@@ -1,6 +1,6 @@
 import httpStatus from 'http-status';
 import { Order } from './order.model.js';
-import { Notification } from '../notification/notification.model.js';
+import { createNotification } from '../../shared/pushNotification.js';
 import { AppError } from '../../shared/appError.js';
 
 const STATUS_TRANSITIONS = {
@@ -36,8 +36,8 @@ export const updateOrderStatus = async (orderId, newStatus) => {
   order.status = newStatus;
   await order.save();
 
-  // Notify the user
-  await Notification.create({
+  // Notify the user (in-app + push)
+  await createNotification({
     userId: order.userId,
     title: 'Order Update',
     message: STATUS_MESSAGES[newStatus],

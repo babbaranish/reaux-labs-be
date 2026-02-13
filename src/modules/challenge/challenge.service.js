@@ -2,6 +2,7 @@ import httpStatus from 'http-status';
 import { Challenge } from './challenge.model.js';
 import { AppError } from '../../shared/appError.js';
 import { paginate } from '../../shared/pagination.js';
+import { createNotification } from '../../shared/pushNotification.js';
 
 export const createChallenge = async (data, userId) => {
   const challenge = await Challenge.create({
@@ -34,6 +35,14 @@ export const joinChallenge = async (challengeId, userId) => {
     }
     throw new AppError('Already joined this challenge', httpStatus.CONFLICT);
   }
+
+  createNotification({
+    userId,
+    title: 'Challenge Joined',
+    message: `You joined "${challenge.title}". Good luck!`,
+    type: 'challenge',
+    metadata: { challengeId },
+  }).catch(() => {});
 
   return challenge;
 };

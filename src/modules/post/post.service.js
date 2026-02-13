@@ -1,9 +1,11 @@
 import httpStatus from 'http-status';
 import { Post } from './post.model.js';
 import { Comment } from './comment.model.js';
+import { User } from '../user/user.model.js';
 import { AppError } from '../../shared/appError.js';
 import { paginate } from '../../shared/pagination.js';
 import { toggleArrayField, addIsLiked } from '../../shared/socialToggle.js';
+import { createNotification } from '../../shared/pushNotification.js';
 
 const extractHashtags = (content) => {
   const matches = content.match(/#(\w+)/g);
@@ -65,12 +67,28 @@ export const getPostById = async (id, userId) => {
 };
 
 export const likePost = async (postId, userId) => {
-  return toggleArrayField(Post, postId, userId, 'likes', { countField: 'likesCount' });
+  const result = await toggleArrayField(Post, postId, userId, 'likes', { countField: 'likesCount' });
+
+  if (result.isLiked && result.author.toString() !== userId.toString()) {
+    User.findById(userId).select('name').lean().then((user) => {
+      if (user) {
+        createNotification({
+          userId: result.author,
+          title: 'New Like',
+          message: `${user.name} liked your post`,
+          type: 'community',
+          metadata: { postId },
+        }).catch(() => {});
+      }
+    });
+  }
+
+  return result;
 };
 
 export const addComment = async (postId, userId, content) => {
-  const postExists = await Post.exists({ _id: postId });
-  if (!postExists) {
+  const post = await Post.findById(postId).select('author').lean();
+  if (!post) {
     throw new AppError('Post not found', httpStatus.NOT_FOUND);
   }
 
@@ -78,6 +96,20 @@ export const addComment = async (postId, userId, content) => {
     Comment.create({ postId, author: userId, content }),
     Post.findByIdAndUpdate(postId, { $inc: { commentsCount: 1 } }),
   ]);
+
+  if (post.author.toString() !== userId.toString()) {
+    User.findById(userId).select('name').lean().then((user) => {
+      if (user) {
+        createNotification({
+          userId: post.author,
+          title: 'New Comment',
+          message: `${user.name} commented on your post`,
+          type: 'community',
+          metadata: { postId, commentId: comment._id },
+        }).catch(() => {});
+      }
+    });
+  }
 
   return comment.populate('author', 'name avatar');
 };

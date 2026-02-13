@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema(
     dateOfBirth: { type: Date },
     gender: { type: String, enum: ['male', 'female', 'other'] },
     status: { type: String, enum: ['active', 'disabled'], default: 'active' },
+    fcmTokens: [{ type: String }],
   },
   { timestamps: true }
 );

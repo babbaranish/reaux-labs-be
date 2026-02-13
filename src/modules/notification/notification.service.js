@@ -1,5 +1,6 @@
 import httpStatus from 'http-status';
 import { Notification } from './notification.model.js';
+import { User } from '../user/user.model.js';
 import { AppError } from '../../shared/appError.js';
 import { paginate } from '../../shared/pagination.js';
 
@@ -42,4 +43,18 @@ export const markAllAsRead = async (userId) => {
   );
 
   return { modifiedCount: result.modifiedCount };
+};
+
+export const registerFcmToken = async (userId, token) => {
+  await User.updateOne(
+    { _id: userId },
+    { $addToSet: { fcmTokens: token } }
+  );
+};
+
+export const removeFcmToken = async (userId, token) => {
+  await User.updateOne(
+    { _id: userId },
+    { $pull: { fcmTokens: token } }
+  );
 };

@@ -8,6 +8,7 @@ import { paginate } from '../../shared/pagination.js';
 import { validatePromo } from '../promo/promo.service.js';
 import { sendEmail } from '../../shared/emailSender.js';
 import { orderConfirmationEmail } from '../../shared/emailTemplates.js';
+import { createNotification } from '../../shared/pushNotification.js';
 
 export const createOrder = async (userId, { shippingAddress, promoCode }) => {
   const cart = await Cart.findOne({ userId }).populate('items.product', 'name price');
@@ -55,7 +56,7 @@ export const createOrder = async (userId, { shippingAddress, promoCode }) => {
   cart.items = [];
   await cart.save();
 
-  // Send confirmation email (fire and forget)
+  // Send confirmation email + push (fire and forget)
   User.findById(userId).select('name email').lean().then((user) => {
     if (user) {
       sendEmail({
@@ -65,6 +66,14 @@ export const createOrder = async (userId, { shippingAddress, promoCode }) => {
       }).catch((err) => console.error('Order confirmation email failed:', err.message));
     }
   });
+
+  createNotification({
+    userId,
+    title: 'Order Placed',
+    message: `Your order of ₹${order.finalAmount} has been placed successfully`,
+    type: 'order',
+    metadata: { orderId: order._id, status: 'pending' },
+  }).catch(() => {});
 
   return order;
 };

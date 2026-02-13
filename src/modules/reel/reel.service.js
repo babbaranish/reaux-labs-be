@@ -1,8 +1,10 @@
 import httpStatus from 'http-status';
 import { Reel } from './reel.model.js';
+import { User } from '../user/user.model.js';
 import { AppError } from '../../shared/appError.js';
 import { paginate } from '../../shared/pagination.js';
 import { toggleArrayField, addIsLiked } from '../../shared/socialToggle.js';
+import { createNotification } from '../../shared/pushNotification.js';
 
 export const createReel = async (data, userId) => {
   return Reel.create({ ...data, author: userId });
@@ -36,5 +38,21 @@ export const getReelById = async (reelId, userId) => {
 };
 
 export const likeReel = async (reelId, userId) => {
-  return toggleArrayField(Reel, reelId, userId, 'likes', { countField: 'likesCount' });
+  const result = await toggleArrayField(Reel, reelId, userId, 'likes', { countField: 'likesCount' });
+
+  if (result.isLiked && result.author.toString() !== userId.toString()) {
+    User.findById(userId).select('name').lean().then((user) => {
+      if (user) {
+        createNotification({
+          userId: result.author,
+          title: 'New Like',
+          message: `${user.name} liked your reel`,
+          type: 'community',
+          metadata: { reelId },
+        }).catch(() => {});
+      }
+    });
+  }
+
+  return result;
 };

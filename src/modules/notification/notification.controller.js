@@ -20,3 +20,13 @@ export const markAllAsRead = asyncHandler(async (req, res) => {
   const result = await notificationService.markAllAsRead(req.user.id);
   return sendSuccess(res, result, httpStatus.OK, 'All notifications marked as read');
 });
+
+export const registerFcmToken = asyncHandler(async (req, res) => {
+  await notificationService.registerFcmToken(req.user.id, req.body.token);
+  return sendSuccess(res, null, httpStatus.OK, 'FCM token registered');
+});
+
+export const removeFcmToken = asyncHandler(async (req, res) => {
+  await notificationService.removeFcmToken(req.user.id, req.body.token);
+  return sendSuccess(res, null, httpStatus.OK, 'FCM token removed');
+});
