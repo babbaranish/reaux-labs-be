@@ -38,3 +38,19 @@ export const like = asyncHandler(async (req, res) => {
   const diet = await dietService.likeDiet(req.params.id, req.user.id);
   return sendSuccess(res, diet, httpStatus.OK, 'Diet like toggled successfully');
 });
+
+export const getSuggested = asyncHandler(async (req, res) => {
+  const { data, pagination, suggestion } =
+    await dietService.getSuggestedDiets(req.user.id, req.query);
+  return res.json({
+    success: true,
+    suggestion,
+    data,
+    pagination: {
+      page: pagination.page,
+      limit: pagination.limit,
+      total: pagination.total,
+      pages: Math.ceil(pagination.total / pagination.limit),
+    },
+  });
+});

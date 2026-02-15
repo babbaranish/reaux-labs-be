@@ -1660,6 +1660,85 @@ or
 
 ---
 
+### 5.7 Get Suggested Diets (BMI-Based)
+
+```
+GET /api/diets/suggested
+```
+
+**Auth:** Bearer Token (any role)
+
+Returns diet plan recommendations based on the authenticated user's most recent BMI record. Uses a rule-based mapping from BMI category to diet category and calorie range.
+
+**BMI-to-Diet Mapping:**
+
+| BMI Category | Suggested Diet Category | Calorie Range |
+|-------------|------------------------|---------------|
+| underweight | `muscle-gain` | 2500–3500 |
+| normal | `maintenance` | 1800–2500 |
+| overweight | `weight-loss` | 1200–1800 |
+| obese | `weight-loss` | 1000–1500 |
+
+**Fallback Logic:**
+1. Match by category + calorie range
+2. If no results → match by category only (ignore calorie range)
+3. If still no results → return all published diets
+
+**Query Parameters:**
+
+| Parameter | Type   | Default | Description      |
+|-----------|--------|---------|------------------|
+| `page`    | number | 1       | Page number      |
+| `limit`   | number | 10      | Results per page |
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "suggestion": {
+    "bmiCategory": "normal",
+    "bmi": 22.5,
+    "recommendedCategory": "maintenance",
+    "calorieRange": { "min": 1800, "max": 2500 }
+  },
+  "data": [
+    {
+      "_id": "665f6e7d8a9b0c1d2e3f4051",
+      "title": "Balanced Maintenance Plan",
+      "slug": "balanced-maintenance-plan",
+      "category": "maintenance",
+      "totalCalories": 2000,
+      "image": "https://cdn.reauxlabs.com/diets/maintenance.jpg",
+      "isPublished": true,
+      "createdBy": {
+        "_id": "665d4c5b6e7f8a9b0c1d2e3f",
+        "name": "Rahul Sharma",
+        "avatar": "https://cdn.reauxlabs.com/profiles/rahul.jpg"
+      },
+      "createdAt": "2025-06-12T14:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 3,
+    "pages": 1
+  }
+}
+```
+
+**Error Response (404 — No BMI Record):**
+
+```json
+{
+  "success": false,
+  "message": "No BMI record found. Please record your BMI first."
+}
+```
+
+---
+
 ## 6. Posts / Community
 
 Base path: `/api/posts`

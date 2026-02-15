@@ -10,6 +10,7 @@ const router = Router();
 
 router.post('/', authenticate, authorize('admin', 'superadmin'), uploadDietImage.single('image'), validate(createDietSchema), dietController.create);
 router.put('/:id', authenticate, authorize('admin', 'superadmin'), uploadDietImage.single('image'), validate(updateDietSchema), dietController.update);
+router.get('/suggested', authenticate, dietController.getSuggested);
 router.get('/', dietController.list);
 router.get('/:id', dietController.getById);
 router.post('/:id/follow', authenticate, dietController.follow);
