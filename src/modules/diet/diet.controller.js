@@ -20,13 +20,13 @@ export const update = asyncHandler(async (req, res) => {
 });
 
 export const list = asyncHandler(async (req, res) => {
-  const userId = req.user?.id ? req.user.id.toString() : null;
+  const userId = req.user?.id || null;
   const { data, pagination } = await dietService.getDiets(req.query, userId);
   return sendPaginated(res, data, pagination);
 });
 
 export const getById = asyncHandler(async (req, res) => {
-  const userId = req.user?.id ? req.user.id.toString() : null;
+  const userId = req.user?.id || null;
   const diet = await dietService.getDietById(req.params.id, userId);
   return sendSuccess(res, diet);
 });
