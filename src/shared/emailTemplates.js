@@ -198,7 +198,7 @@ export const orderConfirmationEmail = (name, order) => {
           <span style="color:${COLORS.gray};font-size:12px;"> x${item.quantity}</span>
         </td>
         <td style="padding:12px 0;border-bottom:1px solid #3D3D52;text-align:right;">
-          <span style="color:#ffffff;font-size:14px;">${item.price * item.quantity}</span>
+          <span style="color:#ffffff;font-size:14px;">₹${item.price * item.quantity}</span>
         </td>
       </tr>`
     )
@@ -224,13 +224,94 @@ export const orderConfirmationEmail = (name, order) => {
           <span style="color:#ffffff;font-size:16px;font-weight:600;">Total</span>
         </td>
         <td style="padding:16px 0;text-align:right;">
-          <span style="color:${COLORS.primary};font-size:18px;font-weight:700;">${order.finalAmount}</span>
+          <span style="color:${COLORS.primary};font-size:18px;font-weight:700;">₹${order.finalAmount}</span>
         </td>
       </tr>
     </table>
 
     <p style="color:${COLORS.gray};font-size:13px;text-align:center;margin:24px 0 0;">
       Stay strong,<br><span style="color:${COLORS.primary};font-weight:600;">Team REAUX Labs</span>
+    </p>
+  `);
+};
+
+export const newOrderAdminEmail = (userName, userEmail, order) => {
+  const itemsHtml = order.items
+    .map(
+      (item) => `
+      <tr>
+        <td style="padding:12px 0;border-bottom:1px solid #3D3D52;">
+          <span style="color:#ffffff;font-size:14px;">${item.name}</span>
+          <span style="color:${COLORS.gray};font-size:12px;"> x${item.quantity}</span>
+        </td>
+        <td style="padding:12px 0;border-bottom:1px solid #3D3D52;text-align:right;">
+          <span style="color:#ffffff;font-size:14px;">₹${item.price * item.quantity}</span>
+        </td>
+      </tr>`
+    )
+    .join('');
+
+  return layout(`
+    <h1 style="color:#ffffff;font-size:26px;font-weight:700;text-align:center;margin:0 0 8px;">
+      🎉 New Order Received!
+    </h1>
+    <p style="color:${COLORS.secondary};font-size:15px;text-align:center;margin:0 0 32px;">
+      A new order has been placed on REAUX Labs.
+    </p>
+
+    <div style="background-color:${COLORS.darkBg};border-radius:10px;padding:20px;margin:0 0 16px;">
+      <p style="color:${COLORS.gray};font-size:12px;margin:0 0 12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Order Details</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="padding:6px 0;">
+            <span style="color:${COLORS.gray};font-size:13px;">Order ID</span>
+          </td>
+          <td style="padding:6px 0;text-align:right;">
+            <span style="color:#ffffff;font-size:13px;font-weight:600;">#${order._id}</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0;">
+            <span style="color:${COLORS.gray};font-size:13px;">Customer</span>
+          </td>
+          <td style="padding:6px 0;text-align:right;">
+            <span style="color:#ffffff;font-size:13px;font-weight:600;">${userName}</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0;">
+            <span style="color:${COLORS.gray};font-size:13px;">Email</span>
+          </td>
+          <td style="padding:6px 0;text-align:right;">
+            <span style="color:#ffffff;font-size:13px;font-weight:600;">${userEmail}</span>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      ${itemsHtml}
+      ${order.discount > 0 ? `
+      <tr>
+        <td style="padding:12px 0;">
+          <span style="color:${COLORS.gray};font-size:14px;">Discount</span>
+        </td>
+        <td style="padding:12px 0;text-align:right;">
+          <span style="color:#4CAF50;font-size:14px;">-₹${order.discount}</span>
+        </td>
+      </tr>` : ''}
+      <tr>
+        <td style="padding:16px 0;">
+          <span style="color:#ffffff;font-size:16px;font-weight:600;">Total</span>
+        </td>
+        <td style="padding:16px 0;text-align:right;">
+          <span style="color:${COLORS.primary};font-size:18px;font-weight:700;">₹${order.finalAmount}</span>
+        </td>
+      </tr>
+    </table>
+
+    <p style="color:${COLORS.gray};font-size:13px;text-align:center;margin:24px 0 0;">
+      <span style="color:${COLORS.primary};font-weight:600;">Team REAUX Labs</span>
     </p>
   `);
 };

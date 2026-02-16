@@ -7,7 +7,7 @@ import { AppError } from '../../shared/appError.js';
 import { paginate } from '../../shared/pagination.js';
 import { validatePromo } from '../promo/promo.service.js';
 import { sendEmail } from '../../shared/emailSender.js';
-import { orderConfirmationEmail } from '../../shared/emailTemplates.js';
+import { orderConfirmationEmail, newOrderAdminEmail } from '../../shared/emailTemplates.js';
 import { createNotification } from '../../shared/pushNotification.js';
 
 export const createOrder = async (userId, { shippingAddress, promoCode }) => {
@@ -64,6 +64,21 @@ export const createOrder = async (userId, { shippingAddress, promoCode }) => {
         subject: 'Order Confirmed — REAUX Labs',
         html: orderConfirmationEmail(user.name, order),
       }).catch((err) => console.error('Order confirmation email failed:', err.message));
+    }
+  });
+
+  // Send new order notification to all superadmins (fire and forget)
+  User.findById(userId).select('name email').lean().then((user) => {
+    if (user) {
+      User.find({ role: 'superadmin' }).select('email').lean().then((superadmins) => {
+        superadmins.forEach((admin) => {
+          sendEmail({
+            to: admin.email,
+            subject: '🎉 New Order Received — REAUX Labs',
+            html: newOrderAdminEmail(user.name, user.email, order),
+          }).catch((err) => console.error('Admin order notification email failed:', err.message));
+        });
+      });
     }
   });
 
