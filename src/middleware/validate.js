@@ -12,5 +12,7 @@ export const validate = (schema) => (req, res, next) => {
     return sendError(res, 'Validation error', httpStatus.BAD_REQUEST, result.error.flatten());
   }
 
+  // Apply transformed/coerced values back to req
+  Object.assign(req, result.data);
   next();
 };
