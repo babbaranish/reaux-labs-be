@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import * as notificationController from './notification.controller.js';
 import { authenticate } from '../../middleware/authenticate.js';
+import { authorize } from '../../middleware/authorize.js';
 import { validate } from '../../middleware/validate.js';
-import { fcmTokenSchema } from './notification.validator.js';
+import { fcmTokenSchema, broadcastSchema } from './notification.validator.js';
 
 const router = Router();
 
@@ -10,6 +11,9 @@ router.get('/', authenticate, notificationController.getNotifications);
 router.put('/read/:id', authenticate, notificationController.markAsRead);
 router.patch('/mark-all-read', authenticate, notificationController.markAllAsRead);
 router.post('/test', authenticate, notificationController.sendTestNotification);
+
+// Broadcast notification to all users (admin/superadmin only)
+router.post('/broadcast', authenticate, authorize('admin', 'superadmin'), validate(broadcastSchema), notificationController.broadcastNotification);
 
 // Device push token management (Expo)
 router.post('/device-token', authenticate, validate(fcmTokenSchema), notificationController.registerFcmToken);

@@ -35,3 +35,8 @@ export const sendTestNotification = asyncHandler(async (req, res) => {
   const result = await notificationService.sendTestNotification(req.user.id);
   return sendSuccess(res, result, httpStatus.OK, 'Test notification sent');
 });
+
+export const broadcastNotification = asyncHandler(async (req, res) => {
+  const result = await notificationService.broadcastNotification(req.body);
+  return sendSuccess(res, result, httpStatus.OK, result.message);
+});

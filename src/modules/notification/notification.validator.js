@@ -18,3 +18,11 @@ export const fcmTokenSchema = z.object({
       ),
   }),
 });
+
+export const broadcastSchema = z.object({
+  body: z.object({
+    title: z.string().min(1).max(100, 'Title must be between 1 and 100 characters'),
+    message: z.string().min(1).max(500, 'Message must be between 1 and 500 characters'),
+    type: z.enum(['system', 'announcement', 'promotion', 'alert']).optional(),
+  }),
+});

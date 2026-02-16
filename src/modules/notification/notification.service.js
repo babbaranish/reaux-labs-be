@@ -74,3 +74,46 @@ export const sendTestNotification = async (userId) => {
     message: 'Test notification sent successfully',
   };
 };
+
+export const broadcastNotification = async ({ title, message, type = 'announcement', metadata = {} }) => {
+  // Get all active users
+  const users = await User.find({ status: 'active' }).select('_id').lean();
+
+  if (users.length === 0) {
+    return { sent: 0, failed: 0, message: 'No active users found' };
+  }
+
+  let sent = 0;
+  let failed = 0;
+
+  // Send notification to each user (batch process to avoid overwhelming the system)
+  const batchSize = 100;
+  for (let i = 0; i < users.length; i += batchSize) {
+    const batch = users.slice(i, i + batchSize);
+
+    await Promise.allSettled(
+      batch.map(async (user) => {
+        try {
+          await createNotification({
+            userId: user._id,
+            title,
+            message,
+            type,
+            metadata: { ...metadata, broadcast: true },
+          });
+          sent++;
+        } catch (error) {
+          console.error(`Failed to send notification to user ${user._id}:`, error.message);
+          failed++;
+        }
+      })
+    );
+  }
+
+  return {
+    sent,
+    failed,
+    total: users.length,
+    message: `Broadcast sent to ${sent} users${failed > 0 ? `, ${failed} failed` : ''}`,
+  };
+};
