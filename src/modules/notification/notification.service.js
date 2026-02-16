@@ -3,6 +3,7 @@ import { Notification } from './notification.model.js';
 import { User } from '../user/user.model.js';
 import { AppError } from '../../shared/appError.js';
 import { paginate } from '../../shared/pagination.js';
+import { createNotification } from '../../shared/pushNotification.js';
 
 export const getNotifications = async (userId, query) => {
   const filter = { userId };
@@ -57,4 +58,19 @@ export const removeFcmToken = async (userId, token) => {
     { _id: userId },
     { $pull: { fcmTokens: token } }
   );
+};
+
+export const sendTestNotification = async (userId) => {
+  const notification = await createNotification({
+    userId,
+    title: '🎉 Test Notification',
+    message: 'REAUX Labs push notifications are working perfectly!',
+    type: 'system',
+    metadata: { source: 'test-endpoint', timestamp: new Date().toISOString() },
+  });
+
+  return {
+    notificationId: notification._id,
+    message: 'Test notification sent successfully',
+  };
 };

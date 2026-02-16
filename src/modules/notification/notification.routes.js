@@ -9,6 +9,7 @@ const router = Router();
 router.get('/', authenticate, notificationController.getNotifications);
 router.put('/read/:id', authenticate, notificationController.markAsRead);
 router.patch('/mark-all-read', authenticate, notificationController.markAllAsRead);
+router.post('/test', authenticate, notificationController.sendTestNotification);
 
 // FCM device token management
 router.post('/fcm-token', authenticate, validate(fcmTokenSchema), notificationController.registerFcmToken);

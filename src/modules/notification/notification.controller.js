@@ -30,3 +30,8 @@ export const removeFcmToken = asyncHandler(async (req, res) => {
   await notificationService.removeFcmToken(req.user.id, req.body.token);
   return sendSuccess(res, null, httpStatus.OK, 'FCM token removed');
 });
+
+export const sendTestNotification = asyncHandler(async (req, res) => {
+  const result = await notificationService.sendTestNotification(req.user.id);
+  return sendSuccess(res, result, httpStatus.OK, 'Test notification sent');
+});
