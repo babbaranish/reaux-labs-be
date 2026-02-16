@@ -23,13 +23,21 @@ export const sendPush = async (userId, { title, body, data = {} }) => {
     return null;
   }
 
+  // Convert all data values to strings (Firebase requirement)
+  const stringifiedData = {};
+  if (data && typeof data === 'object') {
+    for (const [key, value] of Object.entries(data)) {
+      stringifiedData[key] = typeof value === 'string' ? value : JSON.stringify(value);
+    }
+  }
+
   // Create FCM message payload
   const message = {
     notification: {
       title,
       body,
     },
-    data: data || {},
+    data: stringifiedData,
     android: {
       priority: 'high',
       notification: {
