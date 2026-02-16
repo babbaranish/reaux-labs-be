@@ -1,62 +1,75 @@
-import { Expo } from 'expo-server-sdk';
-import expo from '../config/expo.js';
+import admin from 'firebase-admin';
+import firebaseApp from '../config/firebase.js';
 import { Notification } from '../modules/notification/notification.model.js';
 import { User } from '../modules/user/user.model.js';
 
 /**
- * Send push notification to all of a user's devices using Expo.
+ * Send push notification to all of a user's devices using Firebase Admin SDK.
  * Automatically removes invalid/expired tokens.
  */
 export const sendPush = async (userId, { title, body, data = {} }) => {
-  const user = await User.findById(userId).select('fcmTokens').lean();
-  if (!user?.fcmTokens?.length) return null;
-
-  // Filter valid Expo push tokens
-  const validTokens = user.fcmTokens.filter((token) =>
-    Expo.isExpoPushToken(token)
-  );
-
-  if (validTokens.length === 0) {
-    console.log(`No valid Expo push tokens for user ${userId}`);
+  if (!firebaseApp) {
+    console.warn('Firebase not configured. Skipping push notification.');
     return null;
   }
 
-  // Create messages for Expo
-  const messages = validTokens.map((token) => ({
-    to: token,
-    sound: 'default',
-    title,
-    body,
-    data: data || {},
-    badge: 1,
-    priority: 'high',
-  }));
+  const user = await User.findById(userId).select('fcmTokens').lean();
+  if (!user?.fcmTokens?.length) return null;
 
-  // Send notifications in chunks of 100 (Expo recommendation)
-  const chunks = expo.chunkPushNotifications(messages);
-  const receipts = [];
+  const validTokens = user.fcmTokens.filter((token) => token && token.length > 0);
+
+  if (validTokens.length === 0) {
+    console.log(`No valid FCM tokens for user ${userId}`);
+    return null;
+  }
+
+  // Create FCM message payload
+  const message = {
+    notification: {
+      title,
+      body,
+    },
+    data: data || {},
+    android: {
+      priority: 'high',
+      notification: {
+        sound: 'default',
+        channelId: 'default',
+      },
+    },
+    apns: {
+      payload: {
+        aps: {
+          sound: 'default',
+          badge: 1,
+        },
+      },
+    },
+  };
+
+  const results = [];
   const tokensToRemove = [];
 
-  for (const chunk of chunks) {
+  // Send to each token
+  for (const token of validTokens) {
     try {
-      const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
-      receipts.push(...ticketChunk);
-
-      // Check for errors and mark invalid tokens for removal
-      ticketChunk.forEach((ticket, index) => {
-        if (ticket.status === 'error') {
-          if (
-            ticket.details?.error === 'DeviceNotRegistered' ||
-            ticket.message?.includes('not registered')
-          ) {
-            const tokenIndex = validTokens[index];
-            tokensToRemove.push(tokenIndex);
-          }
-          console.error(`Push notification error:`, ticket.message);
-        }
+      const response = await admin.messaging().send({
+        ...message,
+        token,
       });
+      results.push({ token, success: true, messageId: response });
     } catch (error) {
-      console.error('Error sending push notification chunk:', error.message);
+      console.error(`Push notification error for token ${token}:`, error.code);
+
+      // Remove invalid tokens
+      if (
+        error.code === 'messaging/invalid-registration-token' ||
+        error.code === 'messaging/registration-token-not-registered'
+      ) {
+        tokensToRemove.push(token);
+      }
+
+      results.push({ token, success: false, error: error.code });
     }
   }
 
@@ -69,7 +82,7 @@ export const sendPush = async (userId, { title, body, data = {} }) => {
     console.log(`Removed ${tokensToRemove.length} invalid tokens for user ${userId}`);
   }
 
-  return receipts;
+  return results;
 };
 
 /**

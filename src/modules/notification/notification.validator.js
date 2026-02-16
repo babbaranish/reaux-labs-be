@@ -4,10 +4,17 @@ export const fcmTokenSchema = z.object({
   body: z.object({
     token: z
       .string()
-      .min(1, 'Push token is required')
+      .min(20, 'Push token is required')
       .refine(
-        (token) => token.startsWith('ExponentPushToken[') && token.endsWith(']'),
-        'Invalid Expo push token format. Expected: ExponentPushToken[xxx]'
+        (token) => {
+          // Accept both FCM tokens and Expo push tokens
+          return (
+            token.startsWith('ExponentPushToken[') || // Expo format
+            /^[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+$/.test(token) || // FCM format (contains colon)
+            /^[a-zA-Z0-9_-]{140,}$/.test(token) // FCM format (long alphanumeric)
+          );
+        },
+        'Invalid push token format'
       ),
   }),
 });
