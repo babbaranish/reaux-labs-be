@@ -1,3 +1,4 @@
+import { Expo } from 'expo-server-sdk';
 import expo from '../config/expo.js';
 import { Notification } from '../modules/notification/notification.model.js';
 import { User } from '../modules/user/user.model.js';
@@ -12,7 +13,7 @@ export const sendPush = async (userId, { title, body, data = {} }) => {
 
   // Filter valid Expo push tokens
   const validTokens = user.fcmTokens.filter((token) =>
-    expo.isExpoPushToken(token)
+    Expo.isExpoPushToken(token)
   );
 
   if (validTokens.length === 0) {

@@ -3,7 +3,7 @@ import { Notification } from './notification.model.js';
 import { User } from '../user/user.model.js';
 import { AppError } from '../../shared/appError.js';
 import { paginate } from '../../shared/pagination.js';
-import { createNotification } from '../../shared/pushNotification.js';
+import { createNotification, sendPush } from '../../shared/pushNotification.js';
 
 export const getNotifications = async (userId, query) => {
   const filter = { userId };
