@@ -35,7 +35,7 @@ const dietPlanSchema = new mongoose.Schema(
     image: { type: String },
     totalCalories: { type: Number },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    isPublished: { type: Boolean, default: false },
+    isPublished: { type: Boolean, default: true },
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     followersCount: { type: Number, default: 0 },
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
