@@ -3,6 +3,11 @@ import * as userService from './user.service.js';
 import { sendSuccess, sendPaginated } from '../../shared/response.js';
 import { asyncHandler } from '../../middleware/asyncHandler.js';
 
+export const createUser = asyncHandler(async (req, res) => {
+  const user = await userService.createUser(req.body);
+  return sendSuccess(res, user, httpStatus.CREATED, 'User created successfully');
+});
+
 export const getUsers = asyncHandler(async (req, res) => {
   const { data, pagination } = await userService.getUsers(req.query);
   return sendPaginated(res, data, pagination);

@@ -2,6 +2,34 @@ import httpStatus from 'http-status';
 import { User } from './user.model.js';
 import { AppError } from '../../shared/appError.js';
 import { paginate } from '../../shared/pagination.js';
+import { sendEmail } from '../../shared/emailSender.js';
+import { welcomeEmail } from '../../shared/emailTemplates.js';
+
+export const createUser = async ({ name, email, password, phone, role, gymId, status }) => {
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    throw new AppError('Email already registered', httpStatus.CONFLICT);
+  }
+
+  const user = await User.create({
+    name,
+    email,
+    password,
+    phone,
+    role: role || 'user',
+    gymId: gymId || null,
+    status: status || 'active',
+  });
+
+  // Send welcome email (fire and forget)
+  sendEmail({
+    to: email,
+    subject: 'Welcome to REAUX Labs — Your Fitness Journey Starts Now!',
+    html: welcomeEmail(name, email, password),
+  }).catch((err) => console.error('Welcome email failed:', err.message));
+
+  return user;
+};
 
 export const getUsers = async (query) => {
   const filter = {};
