@@ -4,7 +4,7 @@ import { DietPlan } from './diet.model.js';
 import { User } from '../user/user.model.js';
 import { AppError } from '../../shared/appError.js';
 import { paginate } from '../../shared/pagination.js';
-import { toggleArrayField } from '../../shared/socialToggle.js';
+import { toggleArrayField, addIsLiked } from '../../shared/socialToggle.js';
 import { findByIdOrFail, updateByIdOrFail } from '../../shared/crudOperations.js';
 import { createNotification } from '../../shared/pushNotification.js';
 import { BMIRecord } from '../bmi/bmi.model.js';
@@ -32,7 +32,7 @@ export const updateDiet = async (id, data) => {
   return updateByIdOrFail(DietPlan, id, data);
 };
 
-export const getDiets = async (query) => {
+export const getDiets = async (query, userId = null) => {
   const filter = { isPublished: true };
 
   if (query.category) {
@@ -43,24 +43,52 @@ export const getDiets = async (query) => {
     filter.tags = { $in: [query.tag] };
   }
 
-  return paginate(DietPlan, filter, {
+  const result = await paginate(DietPlan, filter, {
     page: query.page,
     limit: query.limit,
     sort: query.sort || { createdAt: -1 },
     populate: { path: 'createdBy', select: 'name avatar' },
     select: '-likes -followers',
   });
+
+  // Add isLiked and isFollowed booleans for authenticated users
+  if (userId) {
+    result.data = await Promise.all([
+      addIsLiked(DietPlan, result.data, userId, 'likes'),
+      addIsLiked(DietPlan, result.data, userId, 'followers'),
+    ]).then(([withLikes, withFollowers]) => {
+      return withLikes.map((diet, i) => ({
+        ...diet,
+        isFollowed: withFollowers[i].isLiked,
+      }));
+    });
+  }
+
+  return result;
 };
 
-export const getDietById = async (id) => {
-  return findByIdOrFail(DietPlan, id, {
+export const getDietById = async (id, userId = null) => {
+  const diet = await findByIdOrFail(DietPlan, id, {
     populate: { path: 'createdBy', select: 'name avatar' },
     select: '-likes -followers',
   });
+
+  // Add isLiked and isFollowed booleans for authenticated users
+  if (userId) {
+    const [withLikes] = await addIsLiked(DietPlan, [diet], userId, 'likes');
+    const [withFollowers] = await addIsLiked(DietPlan, [diet], userId, 'followers');
+    return {
+      ...withLikes,
+      isFollowed: withFollowers.isLiked,
+    };
+  }
+
+  return diet;
 };
 
 export const followDiet = async (dietId, userId) => {
   const result = await toggleArrayField(DietPlan, dietId, userId, 'followers', {
+    countField: 'followersCount',
     selectExclude: '-likes -followers',
   });
 
@@ -78,11 +106,16 @@ export const followDiet = async (dietId, userId) => {
     });
   }
 
-  return result;
+  // Return with isFollowed property for clarity
+  return {
+    ...result,
+    isFollowed: result.isLiked,
+  };
 };
 
 export const likeDiet = async (dietId, userId) => {
   const result = await toggleArrayField(DietPlan, dietId, userId, 'likes', {
+    countField: 'likesCount',
     selectExclude: '-likes -followers',
   });
 
@@ -151,6 +184,19 @@ export const getSuggestedDiets = async (userId, query) => {
       { isPublished: true },
       paginateOpts
     );
+  }
+
+  // Add isLiked and isFollowed booleans
+  if (result.data.length > 0 && userId) {
+    result.data = await Promise.all([
+      addIsLiked(DietPlan, result.data, userId, 'likes'),
+      addIsLiked(DietPlan, result.data, userId, 'followers'),
+    ]).then(([withLikes, withFollowers]) => {
+      return withLikes.map((diet, i) => ({
+        ...diet,
+        isFollowed: withFollowers[i].isLiked,
+      }));
+    });
   }
 
   return {

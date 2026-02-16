@@ -20,12 +20,14 @@ export const update = asyncHandler(async (req, res) => {
 });
 
 export const list = asyncHandler(async (req, res) => {
-  const { data, pagination } = await dietService.getDiets(req.query);
+  const userId = req.user?.id || null;
+  const { data, pagination } = await dietService.getDiets(req.query, userId);
   return sendPaginated(res, data, pagination);
 });
 
 export const getById = asyncHandler(async (req, res) => {
-  const diet = await dietService.getDietById(req.params.id);
+  const userId = req.user?.id || null;
+  const diet = await dietService.getDietById(req.params.id, userId);
   return sendSuccess(res, diet);
 });
 

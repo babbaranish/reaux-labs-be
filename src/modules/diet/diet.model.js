@@ -37,7 +37,9 @@ const dietPlanSchema = new mongoose.Schema(
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     isPublished: { type: Boolean, default: false },
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    followersCount: { type: Number, default: 0 },
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    likesCount: { type: Number, default: 0 },
     tags: [{ type: String }],
   },
   { timestamps: true }
