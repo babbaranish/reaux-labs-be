@@ -11,7 +11,11 @@ router.put('/read/:id', authenticate, notificationController.markAsRead);
 router.patch('/mark-all-read', authenticate, notificationController.markAllAsRead);
 router.post('/test', authenticate, notificationController.sendTestNotification);
 
-// FCM device token management
+// Device push token management (Expo)
+router.post('/device-token', authenticate, validate(fcmTokenSchema), notificationController.registerFcmToken);
+router.delete('/device-token', authenticate, validate(fcmTokenSchema), notificationController.removeFcmToken);
+
+// Legacy FCM endpoints (backward compatibility)
 router.post('/fcm-token', authenticate, validate(fcmTokenSchema), notificationController.registerFcmToken);
 router.delete('/fcm-token', authenticate, validate(fcmTokenSchema), notificationController.removeFcmToken);
 

@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema(
     dateOfBirth: { type: Date },
     gender: { type: String, enum: ['male', 'female', 'other'] },
     status: { type: String, enum: ['active', 'disabled'], default: 'active' },
+    // Device push tokens (Expo format: ExponentPushToken[xxx])
     fcmTokens: [{ type: String }],
   },
   { timestamps: true }
