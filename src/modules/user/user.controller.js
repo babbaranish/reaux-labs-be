@@ -18,6 +18,11 @@ export const getUserById = asyncHandler(async (req, res) => {
   return sendSuccess(res, user);
 });
 
+export const updateUser = asyncHandler(async (req, res) => {
+  const user = await userService.updateUser(req.params.id, req.body, req.user);
+  return sendSuccess(res, user, httpStatus.OK, 'User updated successfully');
+});
+
 export const updateUserRole = asyncHandler(async (req, res) => {
   const user = await userService.updateUserRole(req.params.id, req.body.role);
   return sendSuccess(res, user, httpStatus.OK, 'User role updated');

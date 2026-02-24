@@ -59,6 +59,38 @@ export const getUserById = async (id) => {
   return user;
 };
 
+export const updateUser = async (id, updates, adminUser) => {
+  const targetUser = await User.findById(id);
+  if (!targetUser) throw new AppError('User not found', httpStatus.NOT_FOUND);
+
+  // Admin can only update users in their gym
+  if (adminUser.role === 'admin') {
+    if (targetUser.gymId?.toString() !== adminUser.gymId?.toString()) {
+      throw new AppError('You can only update users in your gym', httpStatus.FORBIDDEN);
+    }
+    // Admin cannot change role or gymId
+    delete updates.role;
+    delete updates.gymId;
+  }
+
+  const allowedFields = ['name', 'phone', 'role', 'gymId', 'gender', 'dateOfBirth', 'status'];
+  const filteredUpdates = {};
+  for (const key of allowedFields) {
+    if (updates[key] !== undefined) {
+      filteredUpdates[key] = key === 'dateOfBirth' ? new Date(updates[key]) : updates[key];
+    }
+  }
+
+  const user = await User.findByIdAndUpdate(id, filteredUpdates, {
+    new: true,
+    runValidators: true,
+  })
+    .select('-password')
+    .populate('gymId', 'name slug logo address');
+
+  return user;
+};
+
 export const updateUserRole = async (id, role) => {
   const user = await User.findByIdAndUpdate(id, { role }, { new: true, runValidators: true });
   if (!user) throw new AppError('User not found', httpStatus.NOT_FOUND);
