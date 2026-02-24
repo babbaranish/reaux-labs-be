@@ -8,6 +8,8 @@ import { createUserSchema, updateUserRoleSchema, updateUserStatusSchema } from '
 const router = Router();
 
 router.post('/', authenticate, authorize('superadmin'), validate(createUserSchema), userController.createUser);
+router.get('/birthdays/today', authenticate, authorize('admin', 'superadmin'), userController.getTodayBirthdays);
+router.get('/birthdays/upcoming', authenticate, authorize('admin', 'superadmin'), userController.getUpcomingBirthdays);
 router.get('/', authenticate, authorize('admin', 'superadmin'), userController.getUsers);
 router.get('/:id', authenticate, authorize('admin', 'superadmin'), userController.getUserById);
 router.put('/:id/role', authenticate, authorize('superadmin'), validate(updateUserRoleSchema), userController.updateUserRole);

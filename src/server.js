@@ -1,11 +1,15 @@
 import app from './app.js';
 import { connectDB, disconnectDB } from './config/database.js';
 import env from './config/env.js';
+import { startBirthdayJob } from './jobs/birthdayJob.js';
 
 let server;
 
 const start = async () => {
   await connectDB();
+
+  // Start scheduled jobs
+  startBirthdayJob();
 
   server = app.listen(env.PORT, () => {
     console.log(`REAUX_labs server running on port ${env.PORT} [${env.NODE_ENV}]`);

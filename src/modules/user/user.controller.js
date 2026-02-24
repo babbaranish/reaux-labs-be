@@ -9,7 +9,7 @@ export const createUser = asyncHandler(async (req, res) => {
 });
 
 export const getUsers = asyncHandler(async (req, res) => {
-  const { data, pagination } = await userService.getUsers(req.query);
+  const { data, pagination } = await userService.getUsers(req.query, req.user);
   return sendPaginated(res, data, pagination);
 });
 
@@ -26,4 +26,15 @@ export const updateUserRole = asyncHandler(async (req, res) => {
 export const updateUserStatus = asyncHandler(async (req, res) => {
   const user = await userService.updateUserStatus(req.params.id, req.body.status);
   return sendSuccess(res, user, httpStatus.OK, 'User status updated');
+});
+
+export const getTodayBirthdays = asyncHandler(async (req, res) => {
+  const users = await userService.getTodayBirthdays(req.user);
+  return sendSuccess(res, users);
+});
+
+export const getUpcomingBirthdays = asyncHandler(async (req, res) => {
+  const days = parseInt(req.query.days) || 7;
+  const users = await userService.getUpcomingBirthdays(req.user, days);
+  return sendSuccess(res, users);
 });

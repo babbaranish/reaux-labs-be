@@ -315,3 +315,40 @@ export const newOrderAdminEmail = (userName, userEmail, order) => {
     </p>
   `);
 };
+
+export const birthdayEmail = (name) =>
+  layout(`
+    <!-- Icon -->
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="display:inline-block;width:80px;height:80px;background-color:${COLORS.primary};border-radius:50%;line-height:80px;text-align:center;">
+        <span style="font-size:40px;">&#127874;</span>
+      </div>
+    </div>
+
+    <!-- Heading -->
+    <h1 style="color:${COLORS.primary};font-size:30px;font-weight:800;text-align:center;margin:0 0 8px;">
+      Happy Birthday, ${name}!
+    </h1>
+    <p style="color:${COLORS.secondary};font-size:16px;text-align:center;margin:0 0 32px;">
+      Wishing you a fantastic day filled with energy and good vibes!
+    </p>
+
+    <!-- Divider -->
+    <div style="border-top:1px solid #3D3D52;margin:0 0 32px;"></div>
+
+    <!-- Message -->
+    <div style="background-color:${COLORS.darkBg};border-radius:10px;padding:24px;margin:0 0 32px;text-align:center;">
+      <p style="color:#ffffff;font-size:15px;line-height:1.8;margin:0;">
+        Another year stronger, another year fitter.<br>
+        Keep pushing your limits and crushing your goals!
+      </p>
+    </div>
+
+    <!-- Divider -->
+    <div style="border-top:1px solid #3D3D52;margin:0 0 32px;"></div>
+
+    <!-- Signature -->
+    <p style="color:${COLORS.gray};font-size:13px;text-align:center;margin:0;">
+      With love,<br><span style="color:${COLORS.primary};font-weight:600;">Team REAUX Labs</span>
+    </p>
+  `);

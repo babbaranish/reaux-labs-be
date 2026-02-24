@@ -8,6 +8,8 @@ export const createUserSchema = z.object({
     phone: z.string().optional(),
     role: z.enum(['user', 'admin', 'superadmin']).default('user'),
     gymId: z.string().optional(),
+    gender: z.enum(['male', 'female', 'other']).optional(),
+    dateOfBirth: z.string().optional(),
     status: z.enum(['active', 'disabled']).default('active'),
   }),
 });
