@@ -24,6 +24,7 @@ import promoRoutes from './modules/promo/promo.routes.js';
 import challengeRoutes from './modules/challenge/challenge.routes.js';
 import notificationRoutes from './modules/notification/notification.routes.js';
 import membershipRoutes from './modules/membership/membership.routes.js';
+import workoutRoutes from './modules/workout/workout.routes.js';
 import analyticsRoutes from './modules/analytics/analytics.routes.js';
 
 const app = express();
@@ -75,6 +76,7 @@ app.use('/api/promo', promoRoutes);
 app.use('/api/challenges', challengeRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/memberships', membershipRoutes);
+app.use('/api/workouts', workoutRoutes);
 app.use('/api/admin', analyticsRoutes);
 
 // Error handling
