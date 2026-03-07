@@ -4,6 +4,31 @@ import { User } from '../modules/user/user.model.js';
 import { sendError } from '../shared/response.js';
 import env from '../config/env.js';
 
+export const optionalAuth = async (req, _res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const decoded = jwt.verify(token, env.JWT_SECRET);
+      const user = await User.findById(decoded.userId)
+        .select('email name role status gymId')
+        .lean();
+      if (user && user.status !== 'disabled') {
+        req.user = {
+          id: user._id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          gymId: user.gymId,
+        };
+      }
+    }
+  } catch {
+    // ignore invalid/missing token — proceed as unauthenticated
+  }
+  next();
+};
+
 export const authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
