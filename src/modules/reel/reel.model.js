@@ -8,6 +8,7 @@ const reelSchema = new mongoose.Schema(
     linkedProduct: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     likesCount: { type: Number, default: 0 },
+    commentsCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

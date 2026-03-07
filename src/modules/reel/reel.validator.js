@@ -7,3 +7,9 @@ export const createReelSchema = z.object({
     linkedProduct: z.string().optional(),
   }),
 });
+
+export const createCommentSchema = z.object({
+  body: z.object({
+    content: z.string().min(1),
+  }),
+});

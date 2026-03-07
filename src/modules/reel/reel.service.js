@@ -1,5 +1,6 @@
 import httpStatus from 'http-status';
 import { Reel } from './reel.model.js';
+import { ReelComment } from './reelComment.model.js';
 import { User } from '../user/user.model.js';
 import { AppError } from '../../shared/appError.js';
 import { paginate } from '../../shared/pagination.js';
@@ -55,4 +56,45 @@ export const likeReel = async (reelId, userId) => {
   }
 
   return result;
+};
+
+export const addComment = async (reelId, userId, content) => {
+  const reel = await Reel.findById(reelId).select('author').lean();
+  if (!reel) {
+    throw new AppError('Reel not found', httpStatus.NOT_FOUND);
+  }
+
+  const [comment] = await Promise.all([
+    ReelComment.create({ reelId, author: userId, content }),
+    Reel.findByIdAndUpdate(reelId, { $inc: { commentsCount: 1 } }),
+  ]);
+
+  if (reel.author.toString() !== userId.toString()) {
+    User.findById(userId).select('name').lean().then((user) => {
+      if (user) {
+        createNotification({
+          userId: reel.author,
+          title: 'New Comment',
+          message: `${user.name} commented on your reel`,
+          type: 'community',
+          metadata: { reelId, commentId: comment._id },
+        }).catch(() => {});
+      }
+    });
+  }
+
+  return comment.populate('author', 'name avatar');
+};
+
+export const getComments = async (reelId, query) => {
+  const reel = await Reel.findById(reelId).select('_id').lean();
+  if (!reel) {
+    throw new AppError('Reel not found', httpStatus.NOT_FOUND);
+  }
+  return paginate(ReelComment, { reelId }, {
+    page: query.page,
+    limit: query.limit,
+    sort: { createdAt: -1 },
+    populate: { path: 'author', select: 'name avatar' },
+  });
 };

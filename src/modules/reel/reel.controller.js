@@ -29,3 +29,13 @@ export const like = asyncHandler(async (req, res) => {
   const reel = await reelService.likeReel(req.params.id, req.user.id);
   return sendSuccess(res, reel, httpStatus.OK, 'Like toggled');
 });
+
+export const comment = asyncHandler(async (req, res) => {
+  const result = await reelService.addComment(req.params.id, req.user.id, req.body.content);
+  return sendSuccess(res, result, httpStatus.CREATED, 'Comment added');
+});
+
+export const listComments = asyncHandler(async (req, res) => {
+  const { data, pagination } = await reelService.getComments(req.params.id, req.query);
+  return sendPaginated(res, data, pagination);
+});
