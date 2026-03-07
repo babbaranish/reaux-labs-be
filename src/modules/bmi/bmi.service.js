@@ -22,17 +22,18 @@ const calculateBmr = (weight, heightCm, age, gender) => {
 };
 
 const getBmiMessage = (category, bmi) => {
+  const display = parseFloat(bmi.toFixed(1));
   switch (category) {
     case 'underweight':
-      return `Your BMI is ${bmi} — you're a bit underweight. Consider adding more nutritious, calorie-rich foods to your diet. A balanced meal plan with proteins and healthy fats can help you reach a healthier weight. You've got this!`;
+      return `Your BMI is ${display} — you're a bit underweight. Consider adding more nutritious, calorie-rich foods to your diet. A balanced meal plan with proteins and healthy fats can help you reach a healthier weight. You've got this!`;
     case 'normal':
-      return `Your BMI is ${bmi} — you're in great shape! Keep up the awesome work with your diet and exercise routine. You're right where you need to be. Stay consistent and keep crushing it!`;
+      return `Your BMI is ${display} — you're in great shape! Keep up the awesome work with your diet and exercise routine. You're right where you need to be. Stay consistent and keep crushing it!`;
     case 'overweight':
-      return `Your BMI is ${bmi} — you're carrying a little extra weight, but nothing you can't handle! Small changes like regular workouts and mindful eating can make a big difference. Let's work on getting you to your best self!`;
+      return `Your BMI is ${display} — you're carrying a little extra weight, but nothing you can't handle! Small changes like regular workouts and mindful eating can make a big difference. Let's work on getting you to your best self!`;
     case 'obese':
-      return `Your BMI is ${bmi} — your health is important to us, and we're here to support you. Start with small, sustainable changes like walking daily and reducing processed foods. Every step forward counts, and we believe in you!`;
+      return `Your BMI is ${display} — your health is important to us, and we're here to support you. Start with small, sustainable changes like walking daily and reducing processed foods. Every step forward counts, and we believe in you!`;
     default:
-      return `Your BMI is ${bmi}. Keep tracking your progress!`;
+      return `Your BMI is ${display}. Keep tracking your progress!`;
   }
 };
 
