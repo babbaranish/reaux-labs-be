@@ -11,9 +11,15 @@ import { BMIRecord } from '../bmi/bmi.model.js';
 
 const BMI_DIET_MAP = {
   underweight: { category: 'muscle-gain', minCalories: 2500, maxCalories: 3500 },
-  normal:      { category: 'maintenance', minCalories: 1800, maxCalories: 2500 },
+  normal:      { category: 'bulking',     minCalories: 1800, maxCalories: 2500 },
   overweight:  { category: 'weight-loss', minCalories: 1200, maxCalories: 1800 },
-  obese:       { category: 'weight-loss', minCalories: 1000, maxCalories: 1500 },
+  obese:       { category: 'cutting',     minCalories: 1000, maxCalories: 1500 },
+};
+
+const GOAL_CATEGORY_MAP = {
+  lose:     ['weight-loss', 'cutting'],
+  gain:     ['muscle-gain', 'bulking'],
+  maintain: null, // use BMI-based mapping
 };
 
 export const createDiet = async (data, userId) => {
@@ -41,6 +47,10 @@ export const getDiets = async (query, userId = null) => {
 
   if (query.tag) {
     filter.tags = { $in: [query.tag] };
+  }
+
+  if (query.dietType) {
+    filter.dietType = query.dietType;
   }
 
   const result = await paginate(DietPlan, filter, {
@@ -157,33 +167,31 @@ export const getSuggestedDiets = async (userId, query) => {
     select: '-likes -followers',
   };
 
-  // Try category + calorie range first
-  let result = await paginate(
-    DietPlan,
-    {
-      isPublished: true,
-      category: mapping.category,
-      totalCalories: { $gte: mapping.minCalories, $lte: mapping.maxCalories },
-    },
-    paginateOpts
-  );
+  // goal param overrides BMI-based category mapping
+  const goalCategories = query.goal ? GOAL_CATEGORY_MAP[query.goal] : null;
+  const baseFilter = { isPublished: true };
+  if (query.dietType) baseFilter.dietType = query.dietType;
 
-  // Fallback: category only (ignore calorie range)
-  if (result.data.length === 0) {
+  let result;
+  if (goalCategories) {
+    result = await paginate(DietPlan, { ...baseFilter, category: { $in: goalCategories } }, paginateOpts);
+  } else {
+    // Try category + calorie range first
     result = await paginate(
       DietPlan,
-      { isPublished: true, category: mapping.category },
+      { ...baseFilter, category: mapping.category, totalCalories: { $gte: mapping.minCalories, $lte: mapping.maxCalories } },
       paginateOpts
     );
+
+    // Fallback: category only
+    if (result.data.length === 0) {
+      result = await paginate(DietPlan, { ...baseFilter, category: mapping.category }, paginateOpts);
+    }
   }
 
   // Final fallback: all published diets
   if (result.data.length === 0) {
-    result = await paginate(
-      DietPlan,
-      { isPublished: true },
-      paginateOpts
-    );
+    result = await paginate(DietPlan, baseFilter, paginateOpts);
   }
 
   // Add isLiked and isFollowed booleans
@@ -204,8 +212,9 @@ export const getSuggestedDiets = async (userId, query) => {
     suggestion: {
       bmiCategory: latestBmi.category,
       bmi: latestBmi.bmi,
-      recommendedCategory: mapping.category,
-      calorieRange: { min: mapping.minCalories, max: mapping.maxCalories },
+      goal: query.goal || null,
+      recommendedCategories: goalCategories || [mapping.category],
+      calorieRange: goalCategories ? null : { min: mapping.minCalories, max: mapping.maxCalories },
     },
   };
 };

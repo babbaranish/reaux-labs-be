@@ -8,6 +8,7 @@ import { fcmTokenSchema, broadcastSchema } from './notification.validator.js';
 const router = Router();
 
 router.get('/', authenticate, notificationController.getNotifications);
+router.get('/:id', authenticate, notificationController.getNotificationById);
 router.put('/read/:id', authenticate, notificationController.markAsRead);
 router.patch('/mark-all-read', authenticate, notificationController.markAllAsRead);
 router.post('/test', authenticate, notificationController.sendTestNotification);

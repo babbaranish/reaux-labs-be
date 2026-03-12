@@ -27,5 +27,14 @@ export const assignMembershipSchema = z.object({
     userId: z.string().min(1, 'User ID is required'),
     planId: z.string().min(1, 'Plan ID is required'),
     startDate: z.string().optional(),
+    feesAmount: z.number().min(0).optional(),
+    feesPaid: z.number().min(0).optional(),
+  }),
+});
+
+export const recordFeesSchema = z.object({
+  body: z.object({
+    amount: z.number().positive('Amount must be positive'),
+    note: z.string().optional(),
   }),
 });

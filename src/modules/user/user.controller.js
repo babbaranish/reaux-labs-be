@@ -4,7 +4,7 @@ import { sendSuccess, sendPaginated } from '../../shared/response.js';
 import { asyncHandler } from '../../middleware/asyncHandler.js';
 
 export const createUser = asyncHandler(async (req, res) => {
-  const user = await userService.createUser(req.body);
+  const user = await userService.createUser(req.body, req.user);
   return sendSuccess(res, user, httpStatus.CREATED, 'User created successfully');
 });
 

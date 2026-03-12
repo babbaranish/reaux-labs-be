@@ -85,7 +85,7 @@ export const createOrder = async (userId, { shippingAddress, promoCode }) => {
   createNotification({
     userId,
     title: 'Order Placed',
-    message: `Your order of ₹${order.finalAmount} has been placed successfully`,
+    message: `Your order #${order._id} for ₹${order.finalAmount} has been placed successfully!`,
     type: 'order',
     metadata: { orderId: order._id, status: 'pending' },
   }).catch(() => {});

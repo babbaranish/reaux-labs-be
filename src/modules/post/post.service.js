@@ -113,3 +113,30 @@ export const addComment = async (postId, userId, content) => {
 
   return comment.populate('author', 'name avatar');
 };
+
+export const deletePost = async (postId) => {
+  const post = await Post.findByIdAndDelete(postId);
+  if (!post) {
+    throw new AppError('Post not found', httpStatus.NOT_FOUND);
+  }
+  // Clean up comments
+  await Comment.deleteMany({ postId });
+  return post;
+};
+
+export const deleteComment = async (postId, commentId, userId, userRole) => {
+  const comment = await Comment.findById(commentId).lean();
+  if (!comment || comment.postId.toString() !== postId) {
+    throw new AppError('Comment not found', httpStatus.NOT_FOUND);
+  }
+
+  // Only comment author or superadmin can delete
+  if (comment.author.toString() !== userId.toString() && userRole !== 'superadmin') {
+    throw new AppError('Not authorized to delete this comment', httpStatus.FORBIDDEN);
+  }
+
+  await Promise.all([
+    Comment.findByIdAndDelete(commentId),
+    Post.findByIdAndUpdate(postId, { $inc: { commentsCount: -1 } }),
+  ]);
+};

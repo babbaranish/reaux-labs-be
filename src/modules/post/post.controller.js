@@ -27,3 +27,13 @@ export const comment = asyncHandler(async (req, res) => {
   const result = await postService.addComment(req.params.id, req.user.id, req.body.content);
   return sendSuccess(res, result, httpStatus.CREATED, 'Comment added');
 });
+
+export const deletePost = asyncHandler(async (req, res) => {
+  await postService.deletePost(req.params.id);
+  return sendSuccess(res, null, httpStatus.OK, 'Post deleted');
+});
+
+export const deleteComment = asyncHandler(async (req, res) => {
+  await postService.deleteComment(req.params.id, req.params.commentId, req.user.id, req.user.role);
+  return sendSuccess(res, null, httpStatus.OK, 'Comment deleted');
+});

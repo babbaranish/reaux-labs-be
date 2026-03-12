@@ -5,6 +5,8 @@ import env from '../../config/env.js';
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
+    firstName: { type: String, trim: true },
+    lastName: { type: String, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true, select: false },
     phone: { type: String, trim: true },
@@ -14,6 +16,7 @@ const userSchema = new mongoose.Schema(
     height: { type: Number },
     weight: { type: Number },
     dateOfBirth: { type: Date },
+    dateOfJoining: { type: Date },
     gender: { type: String, enum: ['male', 'female', 'other'] },
     status: { type: String, enum: ['active', 'disabled'], default: 'active' },
     // Device push tokens (Expo format: ExponentPushToken[xxx])
@@ -26,6 +29,11 @@ userSchema.index({ role: 1 });
 userSchema.index({ gymId: 1 });
 
 userSchema.pre('save', async function () {
+  if (this.isModified('firstName') || this.isModified('lastName')) {
+    const first = this.firstName || '';
+    const last = this.lastName || '';
+    if (first || last) this.name = `${first} ${last}`.trim();
+  }
   if (!this.isModified('password')) return;
   this.password = await bcrypt.hash(this.password, env.BCRYPT_ROUNDS);
 });

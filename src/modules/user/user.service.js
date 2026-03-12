@@ -5,21 +5,29 @@ import { paginate } from '../../shared/pagination.js';
 import { sendEmail } from '../../shared/emailSender.js';
 import { welcomeEmail } from '../../shared/emailTemplates.js';
 
-export const createUser = async ({ name, email, password, phone, role, gymId, gender, dateOfBirth, status }) => {
+export const createUser = async ({ name, firstName, lastName, email, password, phone, role, gymId, gender, dateOfBirth, dateOfJoining, status }, creatingUser) => {
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     throw new AppError('Email already registered', httpStatus.CONFLICT);
   }
 
+  // Derive name from firstName + lastName if name not provided
+  const resolvedName = name || (firstName && lastName ? `${firstName} ${lastName}`.trim() : firstName || lastName || email.split('@')[0]);
+  // Admin auto-assigns their own gym
+  const resolvedGymId = creatingUser?.role === 'admin' ? creatingUser.gymId : (gymId || null);
+
   const user = await User.create({
-    name,
+    name: resolvedName,
+    firstName,
+    lastName,
     email,
     password,
     phone,
     role: role || 'user',
-    gymId: gymId || null,
+    gymId: resolvedGymId,
     gender,
     dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
+    dateOfJoining: dateOfJoining ? new Date(dateOfJoining) : undefined,
     status: status || 'active',
   });
 
@@ -73,12 +81,20 @@ export const updateUser = async (id, updates, adminUser) => {
     delete updates.gymId;
   }
 
-  const allowedFields = ['name', 'phone', 'role', 'gymId', 'gender', 'dateOfBirth', 'status'];
+  const allowedFields = ['name', 'firstName', 'lastName', 'phone', 'role', 'gymId', 'gender', 'dateOfBirth', 'dateOfJoining', 'status'];
+  const dateFields = ['dateOfBirth', 'dateOfJoining'];
   const filteredUpdates = {};
   for (const key of allowedFields) {
     if (updates[key] !== undefined) {
-      filteredUpdates[key] = key === 'dateOfBirth' ? new Date(updates[key]) : updates[key];
+      filteredUpdates[key] = dateFields.includes(key) ? new Date(updates[key]) : updates[key];
     }
+  }
+  // Auto-update name if firstName or lastName changed
+  if (filteredUpdates.firstName || filteredUpdates.lastName) {
+    const current = await User.findById(id).select('firstName lastName').lean();
+    const first = filteredUpdates.firstName || current?.firstName || '';
+    const last = filteredUpdates.lastName || current?.lastName || '';
+    if (first || last) filteredUpdates.name = `${first} ${last}`.trim();
   }
 
   const user = await User.findByIdAndUpdate(id, filteredUpdates, {

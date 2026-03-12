@@ -11,6 +11,11 @@ export const getNotifications = asyncHandler(async (req, res) => {
   return sendPaginated(res, data, pagination);
 });
 
+export const getNotificationById = asyncHandler(async (req, res) => {
+  const notification = await notificationService.getNotificationById(req.params.id, req.user.id);
+  return sendSuccess(res, notification, httpStatus.OK, 'Notification retrieved');
+});
+
 export const markAsRead = asyncHandler(async (req, res) => {
   const notification = await notificationService.markAsRead(req.params.id, req.user.id);
   return sendSuccess(res, notification, httpStatus.OK, 'Notification marked as read');

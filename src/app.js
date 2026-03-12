@@ -26,6 +26,7 @@ import notificationRoutes from './modules/notification/notification.routes.js';
 import membershipRoutes from './modules/membership/membership.routes.js';
 import workoutRoutes from './modules/workout/workout.routes.js';
 import analyticsRoutes from './modules/analytics/analytics.routes.js';
+import contactRoutes from './modules/contact/contact.routes.js';
 
 const app = express();
 
@@ -78,6 +79,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/memberships', membershipRoutes);
 app.use('/api/workouts', workoutRoutes);
 app.use('/api/admin', analyticsRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Error handling
 app.use(notFound);

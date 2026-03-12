@@ -31,7 +31,8 @@ const coerceBool = z.union([
 export const createDietSchema = z.object({
   body: z.object({
     title: z.string().min(2).max(200),
-    category: z.enum(['weight-loss', 'muscle-gain', 'maintenance', 'keto', 'vegan', 'other']),
+    category: z.enum(['weight-loss', 'muscle-gain', 'bulking', 'cutting', 'other']),
+    dietType: z.enum(['veg', 'non-veg', 'both']).optional(),
     description: z.string().max(2000).optional(),
     meals: jsonArrayOrArray(mealSchema).optional(),
     image: z.string().optional(),
@@ -44,7 +45,8 @@ export const createDietSchema = z.object({
 export const updateDietSchema = z.object({
   body: z.object({
     title: z.string().min(2).max(200).optional(),
-    category: z.enum(['weight-loss', 'muscle-gain', 'maintenance', 'keto', 'vegan', 'other']).optional(),
+    category: z.enum(['weight-loss', 'muscle-gain', 'bulking', 'cutting', 'other']).optional(),
+    dietType: z.enum(['veg', 'non-veg', 'both']).optional(),
     description: z.string().max(2000).optional(),
     meals: jsonArrayOrArray(mealSchema).optional(),
     image: z.string().optional(),

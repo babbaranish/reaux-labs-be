@@ -28,8 +28,13 @@ const dietPlanSchema = new mongoose.Schema(
     slug: { type: String, unique: true, trim: true },
     category: {
       type: String,
-      enum: ['weight-loss', 'muscle-gain', 'maintenance', 'keto', 'vegan', 'other'],
+      enum: ['weight-loss', 'muscle-gain', 'bulking', 'cutting', 'other'],
       required: true,
+    },
+    dietType: {
+      type: String,
+      enum: ['veg', 'non-veg', 'both'],
+      default: 'both',
     },
     meals: [mealSchema],
     image: { type: String },

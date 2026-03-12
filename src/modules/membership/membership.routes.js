@@ -6,6 +6,7 @@ import {
   createPlanSchema,
   updatePlanSchema,
   assignMembershipSchema,
+  recordFeesSchema,
 } from './membership.validator.js';
 import * as ctrl from './membership.controller.js';
 
@@ -85,6 +86,14 @@ router.patch(
   authenticate,
   authorize('admin', 'superadmin'),
   ctrl.cancelMembership
+);
+
+router.put(
+  '/:id/fees',
+  authenticate,
+  authorize('admin', 'superadmin'),
+  validate(recordFeesSchema),
+  ctrl.recordFees
 );
 
 export default router;

@@ -23,6 +23,20 @@ export const getNotifications = async (userId, query) => {
   });
 };
 
+export const getNotificationById = async (notificationId, userId) => {
+  const notification = await Notification.findOneAndUpdate(
+    { _id: notificationId, userId },
+    { isRead: true },
+    { new: true }
+  ).lean();
+
+  if (!notification) {
+    throw new AppError('Notification not found', httpStatus.NOT_FOUND);
+  }
+
+  return notification;
+};
+
 export const markAsRead = async (notificationId, userId) => {
   const notification = await Notification.findOneAndUpdate(
     { _id: notificationId, userId },

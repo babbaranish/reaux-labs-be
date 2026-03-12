@@ -2,7 +2,9 @@ import { z } from 'zod/v4';
 
 export const createUserSchema = z.object({
   body: z.object({
-    name: z.string().min(2).max(100),
+    name: z.string().min(2).max(100).optional(),
+    firstName: z.string().min(1).max(50).optional(),
+    lastName: z.string().min(1).max(50).optional(),
     email: z.email(),
     password: z.string().min(6).max(128),
     phone: z.string().optional(),
@@ -10,6 +12,7 @@ export const createUserSchema = z.object({
     gymId: z.string().optional(),
     gender: z.enum(['male', 'female', 'other']).optional(),
     dateOfBirth: z.string().optional(),
+    dateOfJoining: z.string().optional(),
     status: z.enum(['active', 'disabled']).default('active'),
   }),
 });
@@ -17,11 +20,14 @@ export const createUserSchema = z.object({
 export const updateUserSchema = z.object({
   body: z.object({
     name: z.string().min(2).max(100).optional(),
+    firstName: z.string().min(1).max(50).optional(),
+    lastName: z.string().min(1).max(50).optional(),
     phone: z.string().optional(),
     role: z.enum(['user', 'admin', 'superadmin']).optional(),
     gymId: z.string().optional(),
     gender: z.enum(['male', 'female', 'other']).optional(),
     dateOfBirth: z.string().optional(),
+    dateOfJoining: z.string().optional(),
     status: z.enum(['active', 'disabled']).optional(),
   }),
 });

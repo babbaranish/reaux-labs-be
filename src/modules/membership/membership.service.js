@@ -88,6 +88,9 @@ export const assignMembership = async (data, adminUser) => {
   const endDate = new Date(startDate);
   endDate.setDate(endDate.getDate() + plan.durationDays);
 
+  const feesAmount = data.feesAmount ?? 0;
+  const feesPaid = data.feesPaid ?? 0;
+
   const membership = await UserMembership.create({
     userId: data.userId,
     planId: data.planId,
@@ -95,6 +98,9 @@ export const assignMembership = async (data, adminUser) => {
     startDate,
     endDate,
     assignedBy: adminUser.id,
+    feesAmount,
+    feesPaid,
+    feesDue: feesAmount - feesPaid,
   });
 
   // Notify user
@@ -107,6 +113,22 @@ export const assignMembership = async (data, adminUser) => {
     metadata: { membershipId: membership._id, gymId: plan.gymId },
   }).catch(() => {});
 
+  return membership;
+};
+
+export const recordFees = async (id, { amount, note }, adminUser) => {
+  const membership = await UserMembership.findById(id);
+  if (!membership) throw new AppError('Membership not found', httpStatus.NOT_FOUND);
+
+  if (adminUser.role === 'admin' && membership.gymId.toString() !== adminUser.gymId?.toString()) {
+    throw new AppError('You can only update memberships for your gym', httpStatus.FORBIDDEN);
+  }
+
+  membership.feesPaid += amount;
+  membership.feesDue = membership.feesAmount - membership.feesPaid;
+  membership.lastPaymentDate = new Date();
+  membership.paymentHistory.push({ amount, date: new Date(), note });
+  await membership.save();
   return membership;
 };
 

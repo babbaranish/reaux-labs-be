@@ -69,6 +69,11 @@ export const getMembershipById = asyncHandler(async (req, res) => {
   return sendSuccess(res, membership);
 });
 
+export const recordFees = asyncHandler(async (req, res) => {
+  const membership = await membershipService.recordFees(req.params.id, req.body, req.user);
+  return sendSuccess(res, membership, httpStatus.OK, 'Payment recorded');
+});
+
 export const cancelMembership = asyncHandler(async (req, res) => {
   const membership = await membershipService.cancelMembership(
     req.params.id,

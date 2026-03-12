@@ -25,6 +25,17 @@ const userMembershipSchema = new mongoose.Schema(
       default: 'active',
     },
     assignedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    feesAmount: { type: Number, default: 0 },
+    feesPaid: { type: Number, default: 0 },
+    feesDue: { type: Number, default: 0 },
+    lastPaymentDate: { type: Date },
+    paymentHistory: [
+      {
+        amount: { type: Number, required: true },
+        date: { type: Date, default: Date.now },
+        note: { type: String },
+      },
+    ],
   },
   { timestamps: true }
 );
