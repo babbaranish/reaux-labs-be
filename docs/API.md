@@ -3806,6 +3806,81 @@ Directly override fees values for corrections. At least one of `feesAmount`, `fe
 }
 ```
 
+### 14.14 Fees Overview
+
+```
+GET /api/memberships/fees-overview
+```
+
+**Auth:** Bearer Token
+**Role:** `admin` or `superadmin`
+
+Returns all active memberships grouped into 4 categories. Admin automatically scoped to their gym; superadmin can pass `?gymId=` to filter.
+
+**Query Parameters:**
+
+| Parameter | Type   | Required | Description                          |
+|-----------|--------|----------|--------------------------------------|
+| `gymId`   | string | No       | Filter by gym (superadmin only)      |
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "feesDue": [
+      {
+        "_id": "...",
+        "feesAmount": 4499,
+        "feesPaid": 2000,
+        "feesDue": 2499,
+        "advanceCredit": 0,
+        "endDate": "2025-06-10T00:00:00.000Z",
+        "status": "active",
+        "userId": { "_id": "...", "name": "Sneha Gupta", "email": "sneha@gmail.com", "avatar": null },
+        "planId": { "_id": "...", "name": "Premium Quarterly", "price": 4499 },
+        "gymId": { "_id": "...", "name": "REAUX Fitness Mumbai" }
+      }
+    ],
+    "fullyPaid": [
+      {
+        "_id": "...",
+        "feesAmount": 12999,
+        "feesPaid": 12999,
+        "feesDue": 0,
+        "advanceCredit": 0,
+        "status": "active"
+      }
+    ],
+    "credit": [
+      {
+        "_id": "...",
+        "feesAmount": 3999,
+        "feesPaid": 5000,
+        "feesDue": 0,
+        "advanceCredit": 1001,
+        "status": "active"
+      }
+    ],
+    "upcomingRenewals": [
+      {
+        "_id": "...",
+        "endDate": "2025-04-01T00:00:00.000Z",
+        "status": "active"
+      }
+    ]
+  }
+}
+```
+
+| Field              | Description                                                     |
+|--------------------|-----------------------------------------------------------------|
+| `feesDue`          | Active memberships with outstanding balance (`feesDue > 0`)     |
+| `fullyPaid`        | Active memberships with no balance and no credit                |
+| `credit`           | Active memberships with overpayment (`advanceCredit > 0`)       |
+| `upcomingRenewals` | Active memberships expiring within the next 30 days             |
+
 ---
 
 ## 15. Analytics (Admin)
