@@ -3721,7 +3721,56 @@ Records a payment. Pass a **positive** amount to add payment, or a **negative** 
 
 ---
 
-### 14.12 Adjust Fees (Override)
+### 14.12 Apply Credit to Dues
+
+```
+POST /api/memberships/:id/apply-credit
+```
+
+**Auth:** Bearer Token
+**Role:** `admin` or `superadmin`
+
+Transfers advance credit toward clearing pending dues. Applies `min(amount, advanceCredit)` — can never apply more than the available credit. Errors if `advanceCredit` is 0.
+
+**Request Body:**
+
+| Field    | Type   | Required | Description                                         |
+|----------|--------|----------|-----------------------------------------------------|
+| `amount` | number | Yes      | Amount to apply from credit (must be positive)      |
+| `note`   | string | No       | Optional note (auto-generated if omitted)           |
+
+**Example:**
+```json
+{ "amount": 1000, "note": "Clearing pending dues from advance credit" }
+```
+
+**Success Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "Credit applied to dues",
+  "data": {
+    "_id": "...",
+    "feesAmount": 2000,
+    "feesPaid": 4000,
+    "feesDue": 0,
+    "advanceCredit": 1000,
+    "paymentHistory": [
+      { "amount": 1000, "date": "2026-03-13T10:00:00.000Z", "note": "Clearing pending dues from advance credit" }
+    ]
+  }
+}
+```
+
+**Error — No credit available (400):**
+```json
+{ "success": false, "message": "No advance credit available" }
+```
+
+---
+
+### 14.13 Adjust Fees (Override)
 
 ```
 PATCH /api/memberships/:id/fees/adjust

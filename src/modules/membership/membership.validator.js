@@ -39,6 +39,13 @@ export const recordFeesSchema = z.object({
   }),
 });
 
+export const applyCreditSchema = z.object({
+  body: z.object({
+    amount: z.number().positive('Amount must be positive'),
+    note: z.string().optional(),
+  }),
+});
+
 export const adjustFeesSchema = z.object({
   body: z.object({
     feesAmount: z.number().min(0).optional(),

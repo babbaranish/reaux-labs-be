@@ -74,6 +74,11 @@ export const recordFees = asyncHandler(async (req, res) => {
   return sendSuccess(res, membership, httpStatus.OK, 'Payment recorded');
 });
 
+export const applyCredit = asyncHandler(async (req, res) => {
+  const membership = await membershipService.applyCredit(req.params.id, req.body, req.user);
+  return sendSuccess(res, membership, httpStatus.OK, 'Credit applied to dues');
+});
+
 export const adjustFees = asyncHandler(async (req, res) => {
   const membership = await membershipService.adjustFees(req.params.id, req.body, req.user);
   return sendSuccess(res, membership, httpStatus.OK, 'Fees adjusted');

@@ -136,6 +136,36 @@ export const recordFees = async (id, { amount, note }, adminUser) => {
   return membership;
 };
 
+export const applyCredit = async (id, { amount, note }, adminUser) => {
+  const membership = await UserMembership.findById(id);
+  if (!membership) throw new AppError('Membership not found', httpStatus.NOT_FOUND);
+
+  if (adminUser.role === 'admin' && membership.gymId.toString() !== adminUser.gymId?.toString()) {
+    throw new AppError('You can only update memberships for your gym', httpStatus.FORBIDDEN);
+  }
+
+  if (membership.advanceCredit <= 0) {
+    throw new AppError('No advance credit available', httpStatus.BAD_REQUEST);
+  }
+
+  const applyAmount = Math.min(amount, membership.advanceCredit);
+
+  membership.advanceCredit -= applyAmount;
+  membership.feesPaid += applyAmount;
+  const balance = membership.feesAmount - membership.feesPaid;
+  membership.feesDue = balance > 0 ? balance : 0;
+  if (balance < 0) membership.advanceCredit += Math.abs(balance);
+  membership.lastPaymentDate = new Date();
+  membership.paymentHistory.push({
+    amount: applyAmount,
+    date: new Date(),
+    note: note || `Applied ₹${applyAmount} from advance credit to dues`,
+  });
+
+  await membership.save();
+  return membership;
+};
+
 export const adjustFees = async (id, { feesAmount, feesPaid, advanceCredit, note }, adminUser) => {
   const membership = await UserMembership.findById(id);
   if (!membership) throw new AppError('Membership not found', httpStatus.NOT_FOUND);
