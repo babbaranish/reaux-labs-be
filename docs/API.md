@@ -3683,14 +3683,19 @@ PUT /api/memberships/:id/fees
 **Auth:** Bearer Token
 **Role:** `admin` or `superadmin`
 
-Adds a payment to a membership. This is **additive** — `feesPaid` increases by the given `amount`. If the total paid exceeds `feesAmount`, the surplus is stored in `advanceCredit` and `feesDue` becomes 0.
+Records a payment. Pass a **positive** amount to add payment, or a **negative** amount to deduct from `advanceCredit`. `feesDue` and `advanceCredit` auto-recalculate. Amount cannot be 0.
 
 **Request Body:**
 
-| Field    | Type   | Required | Description                           |
-|----------|--------|----------|---------------------------------------|
-| `amount` | number | Yes      | Payment amount (must be positive)     |
-| `note`   | string | No       | Optional note (e.g. "Cash payment")   |
+| Field    | Type   | Required | Description                                                               |
+|----------|--------|----------|---------------------------------------------------------------------------|
+| `amount` | number | Yes      | Positive to add payment, negative to deduct credit (cannot be 0)         |
+| `note`   | string | No       | Optional note (e.g. "Cash payment", "Used advance for this month")        |
+
+**Example — Deduct ₹500 from advance credit:**
+```json
+{ "amount": -500, "note": "Used advance for this month" }
+```
 
 **Success Response (200 OK):**
 
@@ -3701,13 +3706,14 @@ Adds a payment to a membership. This is **additive** — `feesPaid` increases by
   "data": {
     "_id": "...",
     "feesAmount": 2000,
-    "feesPaid": 4000,
+    "feesPaid": 3500,
     "feesDue": 0,
-    "advanceCredit": 2000,
+    "advanceCredit": 1500,
     "lastPaymentDate": "2026-03-13T10:00:00.000Z",
     "paymentHistory": [
       { "amount": 2000, "date": "2026-03-01T00:00:00.000Z", "note": "Initial payment" },
-      { "amount": 2000, "date": "2026-03-13T10:00:00.000Z", "note": "Extra payment" }
+      { "amount": 2000, "date": "2026-03-10T00:00:00.000Z", "note": "Extra payment" },
+      { "amount": -500, "date": "2026-03-13T10:00:00.000Z", "note": "Used advance for this month" }
     ]
   }
 }

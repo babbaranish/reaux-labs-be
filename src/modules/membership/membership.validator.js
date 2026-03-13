@@ -34,7 +34,7 @@ export const assignMembershipSchema = z.object({
 
 export const recordFeesSchema = z.object({
   body: z.object({
-    amount: z.number().positive('Amount must be positive'),
+    amount: z.number().refine((n) => n !== 0, { message: 'Amount cannot be zero' }),
     note: z.string().optional(),
   }),
 });
