@@ -90,6 +90,7 @@ export const assignMembership = async (data, adminUser) => {
 
   const feesAmount = data.feesAmount ?? 0;
   const feesPaid = data.feesPaid ?? 0;
+  const balance = feesAmount - feesPaid;
 
   const membership = await UserMembership.create({
     userId: data.userId,
@@ -100,7 +101,8 @@ export const assignMembership = async (data, adminUser) => {
     assignedBy: adminUser.id,
     feesAmount,
     feesPaid,
-    feesDue: feesAmount - feesPaid,
+    feesDue: balance > 0 ? balance : 0,
+    advanceCredit: balance < 0 ? Math.abs(balance) : 0,
   });
 
   // Notify user
@@ -125,9 +127,41 @@ export const recordFees = async (id, { amount, note }, adminUser) => {
   }
 
   membership.feesPaid += amount;
-  membership.feesDue = membership.feesAmount - membership.feesPaid;
+  const balance = membership.feesAmount - membership.feesPaid;
+  membership.feesDue = balance > 0 ? balance : 0;
+  membership.advanceCredit = balance < 0 ? Math.abs(balance) : 0;
   membership.lastPaymentDate = new Date();
   membership.paymentHistory.push({ amount, date: new Date(), note });
+  await membership.save();
+  return membership;
+};
+
+export const adjustFees = async (id, { feesAmount, feesPaid, advanceCredit, note }, adminUser) => {
+  const membership = await UserMembership.findById(id);
+  if (!membership) throw new AppError('Membership not found', httpStatus.NOT_FOUND);
+
+  if (adminUser.role === 'admin' && membership.gymId.toString() !== adminUser.gymId?.toString()) {
+    throw new AppError('You can only update memberships for your gym', httpStatus.FORBIDDEN);
+  }
+
+  if (feesAmount !== undefined) membership.feesAmount = feesAmount;
+  if (feesPaid !== undefined) membership.feesPaid = feesPaid;
+  if (advanceCredit !== undefined) membership.advanceCredit = advanceCredit;
+
+  // Recalculate derived fields unless both were explicitly set
+  if (advanceCredit === undefined) {
+    const balance = membership.feesAmount - membership.feesPaid;
+    membership.feesDue = balance > 0 ? balance : 0;
+    membership.advanceCredit = balance < 0 ? Math.abs(balance) : 0;
+  } else if (feesPaid !== undefined || feesAmount !== undefined) {
+    const balance = membership.feesAmount - membership.feesPaid;
+    membership.feesDue = balance > 0 ? balance : 0;
+  }
+
+  if (note) {
+    membership.paymentHistory.push({ amount: 0, date: new Date(), note: `[Adjustment] ${note}` });
+  }
+
   await membership.save();
   return membership;
 };

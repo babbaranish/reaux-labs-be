@@ -28,6 +28,7 @@ const userMembershipSchema = new mongoose.Schema(
     feesAmount: { type: Number, default: 0 },
     feesPaid: { type: Number, default: 0 },
     feesDue: { type: Number, default: 0 },
+    advanceCredit: { type: Number, default: 0 },
     lastPaymentDate: { type: Date },
     paymentHistory: [
       {

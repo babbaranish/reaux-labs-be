@@ -38,3 +38,15 @@ export const recordFeesSchema = z.object({
     note: z.string().optional(),
   }),
 });
+
+export const adjustFeesSchema = z.object({
+  body: z.object({
+    feesAmount: z.number().min(0).optional(),
+    feesPaid: z.number().min(0).optional(),
+    advanceCredit: z.number().min(0).optional(),
+    note: z.string().optional(),
+  }).refine(
+    (d) => d.feesAmount !== undefined || d.feesPaid !== undefined || d.advanceCredit !== undefined,
+    { message: 'At least one field (feesAmount, feesPaid, advanceCredit) is required' }
+  ),
+});
