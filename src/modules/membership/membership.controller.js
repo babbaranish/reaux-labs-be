@@ -84,6 +84,11 @@ export const adjustFees = asyncHandler(async (req, res) => {
   return sendSuccess(res, membership, httpStatus.OK, 'Fees adjusted');
 });
 
+export const getFeesOverview = asyncHandler(async (req, res) => {
+  const data = await membershipService.getFeesOverview(req.query, req.user);
+  return sendSuccess(res, data);
+});
+
 export const cancelMembership = asyncHandler(async (req, res) => {
   const membership = await membershipService.cancelMembership(
     req.params.id,

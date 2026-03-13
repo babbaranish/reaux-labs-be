@@ -249,6 +249,66 @@ export const getMembershipById = async (id) => {
   return membership;
 };
 
+export const getFeesOverview = async (query, user) => {
+  const gymFilter = {};
+
+  if (user.role === 'admin') {
+    gymFilter.gymId = user.gymId;
+  } else if (query.gymId) {
+    gymFilter.gymId = query.gymId;
+  }
+
+  const populateFields = [
+    { path: 'userId', select: 'name email avatar' },
+    { path: 'planId', select: 'name price' },
+    { path: 'gymId', select: 'name' },
+  ];
+
+  const selectFields =
+    'userId planId gymId feesAmount feesPaid feesDue advanceCredit endDate status';
+
+  const now = new Date();
+  const thirtyDaysLater = new Date(now);
+  thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30);
+
+  const [feesDue, fullyPaid, credit, upcomingRenewals] = await Promise.all([
+    // feesDue: active memberships still owing money
+    UserMembership.find({ ...gymFilter, status: 'active', feesDue: { $gt: 0 } })
+      .select(selectFields)
+      .populate(populateFields)
+      .lean(),
+
+    // fullyPaid: active memberships with no outstanding balance and no credit
+    UserMembership.find({
+      ...gymFilter,
+      status: 'active',
+      feesDue: 0,
+      advanceCredit: 0,
+    })
+      .select(selectFields)
+      .populate(populateFields)
+      .lean(),
+
+    // credit: active memberships that have overpaid
+    UserMembership.find({ ...gymFilter, status: 'active', advanceCredit: { $gt: 0 } })
+      .select(selectFields)
+      .populate(populateFields)
+      .lean(),
+
+    // upcomingRenewals: active memberships expiring within the next 30 days
+    UserMembership.find({
+      ...gymFilter,
+      status: 'active',
+      endDate: { $gte: now, $lte: thirtyDaysLater },
+    })
+      .select(selectFields)
+      .populate(populateFields)
+      .lean(),
+  ]);
+
+  return { feesDue, fullyPaid, credit, upcomingRenewals };
+};
+
 export const cancelMembership = async (id, adminUser) => {
   const membership = await UserMembership.findById(id);
   if (!membership) {

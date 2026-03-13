@@ -77,6 +77,13 @@ router.get(
 );
 
 router.get(
+  '/fees-overview',
+  authenticate,
+  authorize('admin', 'superadmin'),
+  ctrl.getFeesOverview
+);
+
+router.get(
   '/:id',
   authenticate,
   authorize('admin', 'superadmin'),
