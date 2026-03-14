@@ -49,8 +49,11 @@ export const getDiets = async (query, userId = null) => {
     filter.tags = { $in: [query.tag] };
   }
 
-  if (query.dietType) {
-    filter.dietType = query.dietType;
+  if (query.dietType && query.dietType !== 'both') {
+    // 'veg' → show veg + both; 'non-veg' → show non-veg + both
+    filter.dietType = { $in: [query.dietType, 'both'] };
+  } else if (query.dietType === 'both') {
+    filter.dietType = 'both';
   }
 
   const result = await paginate(DietPlan, filter, {
@@ -170,7 +173,11 @@ export const getSuggestedDiets = async (userId, query) => {
   // goal param overrides BMI-based category mapping
   const goalCategories = query.goal ? GOAL_CATEGORY_MAP[query.goal] : null;
   const baseFilter = { isPublished: true };
-  if (query.dietType) baseFilter.dietType = query.dietType;
+  if (query.dietType && query.dietType !== 'both') {
+    baseFilter.dietType = { $in: [query.dietType, 'both'] };
+  } else if (query.dietType === 'both') {
+    baseFilter.dietType = 'both';
+  }
 
   let result;
   if (goalCategories) {
