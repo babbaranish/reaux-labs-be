@@ -69,7 +69,12 @@ const users = [
     role: 'superadmin', gymId: null,
     avatar: 'https://images.unsplash.com/photo-1649433658557-54cf58577c68?w=400',
     height: 178, weight: 75, dateOfBirth: d('1998-05-15'), dateOfJoining: d('2024-01-01'),
-    gender: 'male', status: 'active', createdAt: now, updatedAt: now,
+    gender: 'male', status: 'active',
+    savedAddresses: [
+      { label: 'Home', street: '12 Vasant Vihar', city: 'Delhi', state: 'Delhi', pincode: '110057', phone: '9876543210', isDefault: true },
+      { label: 'Office', street: '45 MG Road, Connaught Place', city: 'Delhi', state: 'Delhi', pincode: '110001', phone: '9876543210', isDefault: false },
+    ],
+    createdAt: now, updatedAt: now,
   },
   // ── Admins ──
   {
@@ -78,7 +83,11 @@ const users = [
     role: 'admin', gymId: gym1Id,
     avatar: 'https://images.unsplash.com/photo-1633292297613-40c0087f8b3b?w=400',
     height: 182, weight: 80, dateOfBirth: d('1995-08-20'), dateOfJoining: d('2024-03-01'),
-    gender: 'male', status: 'active', createdAt: now, updatedAt: now,
+    gender: 'male', status: 'active',
+    savedAddresses: [
+      { label: 'Home', street: '7 Rajouri Garden', city: 'Delhi', state: 'Delhi', pincode: '110027', phone: '9876543211', isDefault: true },
+    ],
+    createdAt: now, updatedAt: now,
   },
   {
     _id: admin2Id, name: 'Priya Patel', firstName: 'Priya', lastName: 'Patel',
@@ -86,7 +95,12 @@ const users = [
     role: 'admin', gymId: gym2Id,
     avatar: 'https://images.unsplash.com/photo-1618951871701-f542cd0d877e?w=400',
     height: 165, weight: 58, dateOfBirth: d('1997-03-12'), dateOfJoining: d('2024-04-01'),
-    gender: 'female', status: 'active', createdAt: now, updatedAt: now,
+    gender: 'female', status: 'active',
+    savedAddresses: [
+      { label: 'Home', street: '33 Juhu Scheme', city: 'Mumbai', state: 'Maharashtra', pincode: '400049', phone: '9876543212', isDefault: true },
+      { label: 'Gym', street: '12 Linking Road, Bandra West', city: 'Mumbai', state: 'Maharashtra', pincode: '400050', phone: '9876543212', isDefault: false },
+    ],
+    createdAt: now, updatedAt: now,
   },
   {
     _id: admin3Id, name: 'Karan Nair', firstName: 'Karan', lastName: 'Nair',
@@ -94,7 +108,11 @@ const users = [
     role: 'admin', gymId: gym3Id,
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
     height: 176, weight: 73, dateOfBirth: d('1994-11-30'), dateOfJoining: d('2025-01-15'),
-    gender: 'male', status: 'active', createdAt: now, updatedAt: now,
+    gender: 'male', status: 'active',
+    savedAddresses: [
+      { label: 'Home', street: '15 Indiranagar 100 Feet Road', city: 'Bangalore', state: 'Karnataka', pincode: '560038', phone: '9876543219', isDefault: true },
+    ],
+    createdAt: now, updatedAt: now,
   },
   // ── Delhi users ──
   {
@@ -103,7 +121,12 @@ const users = [
     role: 'user', gymId: gym1Id,
     avatar: 'https://images.unsplash.com/photo-1675355152054-d601f3007258?w=400',
     height: 175, weight: 72, dateOfBirth: d('2000-01-25'), dateOfJoining: d('2026-01-15'),
-    gender: 'male', status: 'active', createdAt: now, updatedAt: now,
+    gender: 'male', status: 'active',
+    savedAddresses: [
+      { label: 'Home', street: '10 Sector 18, Dwarka', city: 'Delhi', state: 'Delhi', pincode: '110075', phone: '9876543213', isDefault: true },
+      { label: 'Work', street: '22 Nehru Place', city: 'Delhi', state: 'Delhi', pincode: '110019', phone: '9876543213', isDefault: false },
+    ],
+    createdAt: now, updatedAt: now,
   },
   {
     _id: user2Id, name: 'Vikram Singh', firstName: 'Vikram', lastName: 'Singh',
@@ -111,7 +134,11 @@ const users = [
     role: 'user', gymId: gym1Id,
     avatar: 'https://images.unsplash.com/photo-1617336581611-0afe60655091?w=400',
     height: 185, weight: 90, dateOfBirth: d('1996-07-04'), dateOfJoining: d('2025-12-01'),
-    gender: 'male', status: 'active', createdAt: now, updatedAt: now,
+    gender: 'male', status: 'active',
+    savedAddresses: [
+      { label: 'Home', street: '55 Pitampura', city: 'Delhi', state: 'Delhi', pincode: '110034', phone: '9876543215', isDefault: true },
+    ],
+    createdAt: now, updatedAt: now,
   },
   {
     _id: user3Id, name: 'Riya Kapoor', firstName: 'Riya', lastName: 'Kapoor',
@@ -119,7 +146,11 @@ const users = [
     role: 'user', gymId: gym1Id,
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400',
     height: 162, weight: 54, dateOfBirth: d('2001-04-18'), dateOfJoining: d('2026-02-01'),
-    gender: 'female', status: 'active', createdAt: now, updatedAt: now,
+    gender: 'female', status: 'active',
+    savedAddresses: [
+      { label: 'Home', street: '8 Lajpat Nagar II', city: 'Delhi', state: 'Delhi', pincode: '110024', phone: '9876543216', isDefault: true },
+    ],
+    createdAt: now, updatedAt: now,
   },
   {
     _id: user4Id, name: 'Manish Tiwari', firstName: 'Manish', lastName: 'Tiwari',
@@ -127,7 +158,12 @@ const users = [
     role: 'user', gymId: gym1Id,
     avatar: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=400',
     height: 170, weight: 68, dateOfBirth: d('1993-09-10'), dateOfJoining: d('2025-11-15'),
-    gender: 'male', status: 'active', createdAt: now, updatedAt: now,
+    gender: 'male', status: 'active',
+    savedAddresses: [
+      { label: 'Home', street: '3 Rohini Sector 7', city: 'Delhi', state: 'Delhi', pincode: '110085', phone: '9876543217', isDefault: true },
+      { label: 'Parents', street: '16 Karol Bagh', city: 'Delhi', state: 'Delhi', pincode: '110005', phone: '9811223344', isDefault: false },
+    ],
+    createdAt: now, updatedAt: now,
   },
   // ── Mumbai users ──
   {
@@ -136,7 +172,12 @@ const users = [
     role: 'user', gymId: gym2Id,
     avatar: 'https://images.unsplash.com/photo-1551148518-e19171379838?w=400',
     height: 160, weight: 55, dateOfBirth: d('1999-11-08'), dateOfJoining: d('2026-01-20'),
-    gender: 'female', status: 'active', createdAt: now, updatedAt: now,
+    gender: 'female', status: 'active',
+    savedAddresses: [
+      { label: 'Home', street: '22 Park Street, Bandra West', city: 'Mumbai', state: 'Maharashtra', pincode: '400050', phone: '9876543214', isDefault: true },
+      { label: 'Work', street: '101 BKC, Bandra Kurla Complex', city: 'Mumbai', state: 'Maharashtra', pincode: '400051', phone: '9876543214', isDefault: false },
+    ],
+    createdAt: now, updatedAt: now,
   },
   {
     _id: user6Id, name: 'Rohan Desai', firstName: 'Rohan', lastName: 'Desai',
@@ -144,7 +185,11 @@ const users = [
     role: 'user', gymId: gym2Id,
     avatar: 'https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=400',
     height: 180, weight: 78, dateOfBirth: d('1998-02-14'), dateOfJoining: d('2025-10-01'),
-    gender: 'male', status: 'active', createdAt: now, updatedAt: now,
+    gender: 'male', status: 'active',
+    savedAddresses: [
+      { label: 'Home', street: '5 Andheri West', city: 'Mumbai', state: 'Maharashtra', pincode: '400053', phone: '9876543220', isDefault: true },
+    ],
+    createdAt: now, updatedAt: now,
   },
   {
     _id: user7Id, name: 'Kavya Reddy', firstName: 'Kavya', lastName: 'Reddy',
@@ -152,7 +197,12 @@ const users = [
     role: 'user', gymId: gym2Id,
     avatar: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400',
     height: 158, weight: 52, dateOfBirth: d('2002-06-22'), dateOfJoining: d('2026-02-10'),
-    gender: 'female', status: 'active', createdAt: now, updatedAt: now,
+    gender: 'female', status: 'active',
+    savedAddresses: [
+      { label: 'Home', street: '18 Powai Lake Drive', city: 'Mumbai', state: 'Maharashtra', pincode: '400076', phone: '9876543221', isDefault: true },
+      { label: 'College', street: '400 Vidyanagari Campus, Santacruz East', city: 'Mumbai', state: 'Maharashtra', pincode: '400098', phone: '9876543221', isDefault: false },
+    ],
+    createdAt: now, updatedAt: now,
   },
   // ── Bangalore users ──
   {
@@ -161,7 +211,12 @@ const users = [
     role: 'user', gymId: gym3Id,
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
     height: 173, weight: 76, dateOfBirth: d('1997-08-05'), dateOfJoining: d('2025-09-01'),
-    gender: 'male', status: 'active', createdAt: now, updatedAt: now,
+    gender: 'male', status: 'active',
+    savedAddresses: [
+      { label: 'Home', street: '78 Koramangala 4th Block', city: 'Bangalore', state: 'Karnataka', pincode: '560034', phone: '9876543222', isDefault: true },
+      { label: 'Office', street: '24 Whitefield Main Road', city: 'Bangalore', state: 'Karnataka', pincode: '560066', phone: '9876543222', isDefault: false },
+    ],
+    createdAt: now, updatedAt: now,
   },
   {
     _id: user9Id, name: 'Pooja Sharma', firstName: 'Pooja', lastName: 'Sharma',
@@ -169,7 +224,11 @@ const users = [
     role: 'user', gymId: gym3Id,
     avatar: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400',
     height: 163, weight: 57, dateOfBirth: d('2000-12-03'), dateOfJoining: d('2025-11-01'),
-    gender: 'female', status: 'active', createdAt: now, updatedAt: now,
+    gender: 'female', status: 'active',
+    savedAddresses: [
+      { label: 'Home', street: '9 HSR Layout Sector 2', city: 'Bangalore', state: 'Karnataka', pincode: '560102', phone: '9876543223', isDefault: true },
+    ],
+    createdAt: now, updatedAt: now,
   },
   {
     _id: user10Id, name: 'Nikhil Menon', firstName: 'Nikhil', lastName: 'Menon',
@@ -177,7 +236,13 @@ const users = [
     role: 'user', gymId: gym3Id,
     avatar: 'https://images.unsplash.com/photo-1584999734482-0361aecad844?w=400',
     height: 177, weight: 82, dateOfBirth: d('1995-03-17'), dateOfJoining: d('2026-01-05'),
-    gender: 'male', status: 'active', createdAt: now, updatedAt: now,
+    gender: 'male', status: 'active',
+    savedAddresses: [
+      { label: 'Home', street: '31 JP Nagar 6th Phase', city: 'Bangalore', state: 'Karnataka', pincode: '560078', phone: '9876543224', isDefault: true },
+      { label: 'Work', street: '52 Electronic City Phase 1', city: 'Bangalore', state: 'Karnataka', pincode: '560100', phone: '9876543224', isDefault: false },
+      { label: 'Parents', street: '4 Thrissur Road', city: 'Palakkad', state: 'Kerala', pincode: '678001', phone: '9876543224', isDefault: false },
+    ],
+    createdAt: now, updatedAt: now,
   },
 ];
 

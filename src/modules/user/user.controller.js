@@ -33,6 +33,28 @@ export const updateUserStatus = asyncHandler(async (req, res) => {
   return sendSuccess(res, user, httpStatus.OK, 'User status updated');
 });
 
+// ── Saved Addresses ──────────────────────────────────────
+
+export const getAddresses = asyncHandler(async (req, res) => {
+  const addresses = await userService.getAddresses(req.user.id);
+  return sendSuccess(res, addresses);
+});
+
+export const addAddress = asyncHandler(async (req, res) => {
+  const addresses = await userService.addAddress(req.user.id, req.body);
+  return sendSuccess(res, addresses, httpStatus.CREATED, 'Address added');
+});
+
+export const updateAddress = asyncHandler(async (req, res) => {
+  const addresses = await userService.updateAddress(req.user.id, req.params.addressId, req.body);
+  return sendSuccess(res, addresses, httpStatus.OK, 'Address updated');
+});
+
+export const deleteAddress = asyncHandler(async (req, res) => {
+  const addresses = await userService.deleteAddress(req.user.id, req.params.addressId);
+  return sendSuccess(res, addresses, httpStatus.OK, 'Address deleted');
+});
+
 export const getTodayBirthdays = asyncHandler(async (req, res) => {
   const users = await userService.getTodayBirthdays(req.user);
   return sendSuccess(res, users);

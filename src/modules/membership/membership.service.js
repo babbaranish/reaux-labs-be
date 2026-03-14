@@ -209,10 +209,14 @@ export const getMemberships = async (query, user) => {
   if (query.userId) filter.userId = query.userId;
   if (query.status) filter.status = query.status;
 
+  const SORTABLE = { endDate: 1, feesDue: 1, createdAt: 1 };
+  const sortField = SORTABLE[query.sortBy] !== undefined ? query.sortBy : 'createdAt';
+  const sortOrder = query.order === 'asc' ? 1 : -1;
+
   return paginate(UserMembership, filter, {
     page: query.page,
     limit: query.limit,
-    sort: { createdAt: -1 },
+    sort: { [sortField]: sortOrder },
     populate: [
       { path: 'userId', select: 'name email avatar' },
       { path: 'planId', select: 'name durationDays price features' },

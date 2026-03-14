@@ -192,3 +192,66 @@ export const getUpcomingBirthdays = async (user, days = 7) => {
     return { ...u, daysUntil };
   }).sort((a, b) => a.daysUntil - b.daysUntil);
 };
+
+
+// ── Saved Addresses ──────────────────────────────────────
+
+export const getAddresses = async (userId) => {
+  const user = await User.findById(userId).select('savedAddresses');
+  if (!user) throw new AppError('User not found', httpStatus.NOT_FOUND);
+  return user.savedAddresses;
+};
+
+export const addAddress = async (userId, data) => {
+  const user = await User.findById(userId).select('savedAddresses');
+  if (!user) throw new AppError('User not found', httpStatus.NOT_FOUND);
+
+  // If new address is default, unset all others
+  if (data.isDefault) {
+    user.savedAddresses.forEach((a) => { a.isDefault = false; });
+  }
+
+  // Auto-set as default if this is the first address
+  if (user.savedAddresses.length === 0) {
+    data.isDefault = true;
+  }
+
+  user.savedAddresses.push(data);
+  await user.save();
+  return user.savedAddresses;
+};
+
+export const updateAddress = async (userId, addressId, data) => {
+  const user = await User.findById(userId).select('savedAddresses');
+  if (!user) throw new AppError('User not found', httpStatus.NOT_FOUND);
+
+  const address = user.savedAddresses.id(addressId);
+  if (!address) throw new AppError('Address not found', httpStatus.NOT_FOUND);
+
+  if (data.isDefault) {
+    user.savedAddresses.forEach((a) => { a.isDefault = false; });
+  }
+
+  Object.assign(address, data);
+  await user.save();
+  return user.savedAddresses;
+};
+
+export const deleteAddress = async (userId, addressId) => {
+  const user = await User.findById(userId).select('savedAddresses');
+  if (!user) throw new AppError('User not found', httpStatus.NOT_FOUND);
+
+  const address = user.savedAddresses.id(addressId);
+  if (!address) throw new AppError('Address not found', httpStatus.NOT_FOUND);
+
+  const wasDefault = address.isDefault;
+  address.deleteOne();
+
+  // If deleted address was default, make the first remaining one default
+  if (wasDefault && user.savedAddresses.length > 0) {
+    user.savedAddresses[0].isDefault = true;
+  }
+
+  await user.save();
+  return user.savedAddresses;
+};

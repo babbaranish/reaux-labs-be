@@ -19,6 +19,17 @@ const userSchema = new mongoose.Schema(
     dateOfJoining: { type: Date },
     gender: { type: String, enum: ['male', 'female', 'other'] },
     status: { type: String, enum: ['active', 'disabled'], default: 'active' },
+    savedAddresses: [
+      {
+        label: { type: String, trim: true },           // e.g. "Home", "Work"
+        street: { type: String, trim: true },
+        city: { type: String, trim: true },
+        state: { type: String, trim: true },
+        pincode: { type: String, trim: true },
+        phone: { type: String, trim: true },
+        isDefault: { type: Boolean, default: false },
+      },
+    ],
     // Device push tokens (Expo format: ExponentPushToken[xxx])
     fcmTokens: [{ type: String }],
   },

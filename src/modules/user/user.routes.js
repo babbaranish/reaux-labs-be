@@ -3,9 +3,15 @@ import * as userController from './user.controller.js';
 import { authenticate } from '../../middleware/authenticate.js';
 import { authorize } from '../../middleware/authorize.js';
 import { validate } from '../../middleware/validate.js';
-import { createUserSchema, updateUserSchema, updateUserRoleSchema, updateUserStatusSchema } from './user.validator.js';
+import { createUserSchema, updateUserSchema, updateUserRoleSchema, updateUserStatusSchema, savedAddressSchema, updateSavedAddressSchema } from './user.validator.js';
 
 const router = Router();
+
+// ── Saved Addresses (any authenticated user manages their own) ──
+router.get('/addresses', authenticate, userController.getAddresses);
+router.post('/addresses', authenticate, validate(savedAddressSchema), userController.addAddress);
+router.put('/addresses/:addressId', authenticate, validate(updateSavedAddressSchema), userController.updateAddress);
+router.delete('/addresses/:addressId', authenticate, userController.deleteAddress);
 
 router.post('/', authenticate, authorize('admin', 'superadmin'), validate(createUserSchema), userController.createUser);
 router.get('/birthdays/today', authenticate, authorize('admin', 'superadmin'), userController.getTodayBirthdays);
