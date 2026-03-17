@@ -49,12 +49,12 @@ export const getDiets = async (query, userId = null) => {
     filter.tags = { $in: [query.tag] };
   }
 
-  if (query.dietType && query.dietType !== 'both') {
-    // 'veg' → show veg + both; 'non-veg' → show non-veg + both
-    filter.dietType = { $in: [query.dietType, 'both'] };
-  } else if (query.dietType === 'both') {
-    filter.dietType = 'both';
+  if (query.dietType === 'veg') {
+    filter.dietType = { $in: ['veg', 'both'] };
+  } else if (query.dietType === 'non-veg') {
+    filter.dietType = { $in: ['non-veg', 'both'] };
   }
+  // dietType=both or not provided → no filter, show all
 
   const result = await paginate(DietPlan, filter, {
     page: query.page,
@@ -173,11 +173,12 @@ export const getSuggestedDiets = async (userId, query) => {
   // goal param overrides BMI-based category mapping
   const goalCategories = query.goal ? GOAL_CATEGORY_MAP[query.goal] : null;
   const baseFilter = { isPublished: true };
-  if (query.dietType && query.dietType !== 'both') {
-    baseFilter.dietType = { $in: [query.dietType, 'both'] };
-  } else if (query.dietType === 'both') {
-    baseFilter.dietType = 'both';
+  if (query.dietType === 'veg') {
+    baseFilter.dietType = { $in: ['veg', 'both'] };
+  } else if (query.dietType === 'non-veg') {
+    baseFilter.dietType = { $in: ['non-veg', 'both'] };
   }
+  // dietType=both or not provided → no filter, show all
 
   let result;
   if (goalCategories) {
