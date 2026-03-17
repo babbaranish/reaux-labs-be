@@ -45,9 +45,10 @@ export const getUsers = async (query, user) => {
   const filter = {};
   if (query.role) filter.role = query.role;
 
-  // Admin sees only regular users from their gym (no admins/superadmins)
+  // Admin sees only regular users from their gym(s) (no admins/superadmins)
   if (user.role === 'admin') {
-    filter.gymId = user.gymId;
+    const ids = user.gymIds?.length ? user.gymIds : [user.gymId].filter(Boolean);
+    filter.gymId = ids.length === 1 ? ids[0] : { $in: ids };
     filter.role = 'user';
   } else if (query.gymId) {
     filter.gymId = query.gymId;
@@ -71,9 +72,11 @@ export const updateUser = async (id, updates, adminUser) => {
   const targetUser = await User.findById(id);
   if (!targetUser) throw new AppError('User not found', httpStatus.NOT_FOUND);
 
-  // Admin can only update users in their gym
+  // Admin can only update users in their gym(s)
   if (adminUser.role === 'admin') {
-    if (targetUser.gymId?.toString() !== adminUser.gymId?.toString()) {
+    const adminGymIds = adminUser.gymIds?.length ? adminUser.gymIds : [adminUser.gymId].filter(Boolean);
+    const targetGymStr = targetUser.gymId?.toString();
+    if (!adminGymIds.some((id) => id.toString() === targetGymStr)) {
       throw new AppError('You can only update users in your gym', httpStatus.FORBIDDEN);
     }
     // Admin cannot change role or gymId
@@ -137,7 +140,8 @@ export const getTodayBirthdays = async (user) => {
 
   // Admin sees only their gym's users
   if (user.role === 'admin') {
-    filter.gymId = user.gymId;
+    const ids = user.gymIds?.length ? user.gymIds : [user.gymId].filter(Boolean);
+    filter.gymId = ids.length === 1 ? ids[0] : { $in: ids };
     filter.role = 'user';
   }
 
@@ -173,7 +177,8 @@ export const getUpcomingBirthdays = async (user, days = 7) => {
 
   // Admin sees only their gym's users
   if (user.role === 'admin') {
-    filter.gymId = user.gymId;
+    const ids = user.gymIds?.length ? user.gymIds : [user.gymId].filter(Boolean);
+    filter.gymId = ids.length === 1 ? ids[0] : { $in: ids };
     filter.role = 'user';
   }
 

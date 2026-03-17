@@ -74,9 +74,9 @@ export const assignMembership = async (data, adminUser) => {
     throw new AppError('User not found', httpStatus.NOT_FOUND);
   }
 
-  // Admin can only assign memberships for their own gym
+  // Admin can only assign memberships for their own gym(s)
   if (adminUser.role === 'admin') {
-    if (plan.gymId.toString() !== adminUser.gymId?.toString()) {
+    if (!isAdminGym(adminUser, plan.gymId)) {
       throw new AppError(
         'You can only assign memberships for your gym',
         httpStatus.FORBIDDEN
@@ -118,11 +118,19 @@ export const assignMembership = async (data, adminUser) => {
   return membership;
 };
 
-export const recordFees = async (id, { amount, note }, adminUser) => {
+const isAdminGym = (adminUser, gymId) => {
+  const gymStr = gymId?.toString();
+  if (adminUser.gymIds?.length) {
+    return adminUser.gymIds.some((id) => id.toString() === gymStr);
+  }
+  return adminUser.gymId?.toString() === gymStr;
+};
+
+export const recordFees = async (id, { amount, note, extendDays }, adminUser) => {
   const membership = await UserMembership.findById(id);
   if (!membership) throw new AppError('Membership not found', httpStatus.NOT_FOUND);
 
-  if (adminUser.role === 'admin' && membership.gymId.toString() !== adminUser.gymId?.toString()) {
+  if (adminUser.role === 'admin' && !isAdminGym(adminUser, membership.gymId)) {
     throw new AppError('You can only update memberships for your gym', httpStatus.FORBIDDEN);
   }
 
@@ -131,6 +139,14 @@ export const recordFees = async (id, { amount, note }, adminUser) => {
   membership.feesDue = balance > 0 ? balance : 0;
   membership.advanceCredit = balance < 0 ? Math.abs(balance) : 0;
   membership.lastPaymentDate = new Date();
+
+  if (extendDays) {
+    const base = membership.endDate ? new Date(membership.endDate) : new Date();
+    base.setDate(base.getDate() + extendDays);
+    membership.endDate = base;
+    if (membership.status === 'expired') membership.status = 'active';
+  }
+
   membership.paymentHistory.push({ amount, date: new Date(), note });
   await membership.save();
   return membership;
@@ -140,7 +156,7 @@ export const applyCredit = async (id, { amount, note }, adminUser) => {
   const membership = await UserMembership.findById(id);
   if (!membership) throw new AppError('Membership not found', httpStatus.NOT_FOUND);
 
-  if (adminUser.role === 'admin' && membership.gymId.toString() !== adminUser.gymId?.toString()) {
+  if (adminUser.role === 'admin' && !isAdminGym(adminUser, membership.gymId)) {
     throw new AppError('You can only update memberships for your gym', httpStatus.FORBIDDEN);
   }
 
@@ -170,7 +186,7 @@ export const adjustFees = async (id, { feesAmount, feesPaid, advanceCredit, note
   const membership = await UserMembership.findById(id);
   if (!membership) throw new AppError('Membership not found', httpStatus.NOT_FOUND);
 
-  if (adminUser.role === 'admin' && membership.gymId.toString() !== adminUser.gymId?.toString()) {
+  if (adminUser.role === 'admin' && !isAdminGym(adminUser, membership.gymId)) {
     throw new AppError('You can only update memberships for your gym', httpStatus.FORBIDDEN);
   }
 
@@ -199,9 +215,10 @@ export const adjustFees = async (id, { feesAmount, feesPaid, advanceCredit, note
 export const getMemberships = async (query, user) => {
   const filter = {};
 
-  // Admin scoped to their gym
+  // Admin scoped to their gym(s)
   if (user.role === 'admin') {
-    filter.gymId = user.gymId;
+    const ids = user.gymIds?.length ? user.gymIds : [user.gymId].filter(Boolean);
+    filter.gymId = ids.length === 1 ? ids[0] : { $in: ids };
   } else if (query.gymId) {
     filter.gymId = query.gymId;
   }
@@ -257,7 +274,8 @@ export const getFeesOverview = async (query, user) => {
   const gymFilter = {};
 
   if (user.role === 'admin') {
-    gymFilter.gymId = user.gymId;
+    const ids = user.gymIds?.length ? user.gymIds : [user.gymId].filter(Boolean);
+    gymFilter.gymId = ids.length === 1 ? ids[0] : { $in: ids };
   } else if (query.gymId) {
     gymFilter.gymId = query.gymId;
   }
@@ -323,9 +341,9 @@ export const cancelMembership = async (id, adminUser) => {
     throw new AppError('Membership is already cancelled', httpStatus.BAD_REQUEST);
   }
 
-  // Admin can only cancel memberships for their gym
+  // Admin can only cancel memberships for their gym(s)
   if (adminUser.role === 'admin') {
-    if (membership.gymId.toString() !== adminUser.gymId?.toString()) {
+    if (!isAdminGym(adminUser, membership.gymId)) {
       throw new AppError(
         'You can only cancel memberships for your gym',
         httpStatus.FORBIDDEN

@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema(
     phone: { type: String, trim: true },
     role: { type: String, enum: ['user', 'admin', 'superadmin'], default: 'user' },
     gymId: { type: mongoose.Schema.Types.ObjectId, ref: 'Gym', default: null },
+    gymIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Gym' }],
     avatar: { type: String },
     height: { type: Number },
     weight: { type: Number },

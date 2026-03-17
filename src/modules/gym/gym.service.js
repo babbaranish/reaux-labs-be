@@ -58,7 +58,14 @@ export const assignAdmin = async (gymId, userId) => {
   }
 
   user.role = 'admin';
-  user.gymId = gymId;
+  // Track all gyms this admin manages
+  if (!user.gymIds) user.gymIds = [];
+  const gymStr = gymId.toString();
+  if (!user.gymIds.map((id) => id.toString()).includes(gymStr)) {
+    user.gymIds.push(gymId);
+  }
+  // Primary gymId = first assigned gym
+  if (!user.gymId) user.gymId = gymId;
   await user.save();
 
   return user;

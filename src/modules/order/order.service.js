@@ -67,16 +67,24 @@ export const createOrder = async (userId, { shippingAddress, promoCode }) => {
     }
   });
 
-  // Send new order notification to all superadmins (fire and forget)
+  // Send new order notification (email + push) to all superadmins (fire and forget)
   User.findById(userId).select('name email').lean().then((user) => {
     if (user) {
-      User.find({ role: 'superadmin' }).select('email').lean().then((superadmins) => {
+      User.find({ role: 'superadmin' }).select('_id email').lean().then((superadmins) => {
         superadmins.forEach((admin) => {
           sendEmail({
             to: admin.email,
             subject: '🎉 New Order Received — REAUX Labs',
             html: newOrderAdminEmail(user.name, user.email, order),
           }).catch((err) => console.error('Admin order notification email failed:', err.message));
+
+          createNotification({
+            userId: admin._id,
+            title: 'New Order Received',
+            message: `${user.name} placed an order for ₹${order.finalAmount}`,
+            type: 'order',
+            metadata: { orderId: order._id, status: 'pending' },
+          }).catch(() => {});
         });
       });
     }

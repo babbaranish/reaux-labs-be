@@ -78,9 +78,10 @@ const users = [
   },
   // ── Admins ──
   {
+    // Rahul manages Delhi (primary) + Mumbai — multi-gym admin example
     _id: admin1Id, name: 'Rahul Sharma', firstName: 'Rahul', lastName: 'Sharma',
     email: 'rahul@reauxlabs.com', password: hash, phone: '9876543211',
-    role: 'admin', gymId: gym1Id,
+    role: 'admin', gymId: gym1Id, gymIds: [gym1Id, gym2Id],
     avatar: 'https://images.unsplash.com/photo-1633292297613-40c0087f8b3b?w=400',
     height: 182, weight: 80, dateOfBirth: d('1995-08-20'), dateOfJoining: d('2024-03-01'),
     gender: 'male', status: 'active',
@@ -92,7 +93,7 @@ const users = [
   {
     _id: admin2Id, name: 'Priya Patel', firstName: 'Priya', lastName: 'Patel',
     email: 'priya@reauxlabs.com', password: hash, phone: '9876543212',
-    role: 'admin', gymId: gym2Id,
+    role: 'admin', gymId: gym2Id, gymIds: [gym2Id],
     avatar: 'https://images.unsplash.com/photo-1618951871701-f542cd0d877e?w=400',
     height: 165, weight: 58, dateOfBirth: d('1997-03-12'), dateOfJoining: d('2024-04-01'),
     gender: 'female', status: 'active',
@@ -105,7 +106,7 @@ const users = [
   {
     _id: admin3Id, name: 'Karan Nair', firstName: 'Karan', lastName: 'Nair',
     email: 'karan@reauxlabs.com', password: hash, phone: '9876543219',
-    role: 'admin', gymId: gym3Id,
+    role: 'admin', gymId: gym3Id, gymIds: [gym3Id],
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
     height: 176, weight: 73, dateOfBirth: d('1994-11-30'), dateOfJoining: d('2025-01-15'),
     gender: 'male', status: 'active',

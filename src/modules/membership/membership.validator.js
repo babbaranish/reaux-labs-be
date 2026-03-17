@@ -36,6 +36,7 @@ export const recordFeesSchema = z.object({
   body: z.object({
     amount: z.number().refine((n) => n !== 0, { message: 'Amount cannot be zero' }),
     note: z.string().optional(),
+    extendDays: z.number().int().positive().optional(),
   }),
 });
 

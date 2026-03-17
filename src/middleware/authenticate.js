@@ -11,7 +11,7 @@ export const optionalAuth = async (req, _res, next) => {
       const token = authHeader.substring(7);
       const decoded = jwt.verify(token, env.JWT_SECRET);
       const user = await User.findById(decoded.userId)
-        .select('email name role status gymId')
+        .select('email name role status gymId gymIds')
         .lean();
       if (user && user.status !== 'disabled') {
         req.user = {
@@ -20,6 +20,7 @@ export const optionalAuth = async (req, _res, next) => {
           name: user.name,
           role: user.role,
           gymId: user.gymId,
+          gymIds: user.gymIds || [],
         };
       }
     }
@@ -46,7 +47,7 @@ export const authenticate = async (req, res, next) => {
     }
 
     const user = await User.findById(decoded.userId)
-      .select('email name role status gymId')
+      .select('email name role status gymId gymIds')
       .lean();
     if (!user) {
       return sendError(res, 'User not found', httpStatus.UNAUTHORIZED);
@@ -62,6 +63,7 @@ export const authenticate = async (req, res, next) => {
       name: user.name,
       role: user.role,
       gymId: user.gymId,
+      gymIds: user.gymIds || [],
     };
 
     next();

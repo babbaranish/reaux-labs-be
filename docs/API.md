@@ -1167,7 +1167,7 @@ POST /api/gyms/:id/assign-admin
 **Auth:** Bearer Token
 **Role:** `superadmin` only
 
-Promotes a user to the `admin` role and associates them with the specified gym.
+Promotes a user to the `admin` role and associates them with the specified gym. **Supports multiple gyms per admin** — calling this endpoint for a second gym on the same user adds that gym to their `gymIds` list without removing the first. The admin's `gymId` (primary) stays as their first assigned gym.
 
 **URL Parameters:**
 
@@ -3685,12 +3685,20 @@ PUT /api/memberships/:id/fees
 
 Records a payment. Pass a **positive** amount to add payment, or a **negative** amount to deduct from `advanceCredit`. `feesDue` and `advanceCredit` auto-recalculate. Amount cannot be 0.
 
+Optionally pass `extendDays` to push the membership end date forward (useful when a member pays for another month/quarter). If the membership was `expired`, it automatically becomes `active`.
+
 **Request Body:**
 
-| Field    | Type   | Required | Description                                                               |
-|----------|--------|----------|---------------------------------------------------------------------------|
-| `amount` | number | Yes      | Positive to add payment, negative to deduct credit (cannot be 0)         |
-| `note`   | string | No       | Optional note (e.g. "Cash payment", "Used advance for this month")        |
+| Field        | Type   | Required | Description                                                               |
+|--------------|--------|----------|---------------------------------------------------------------------------|
+| `amount`     | number | Yes      | Positive to add payment, negative to deduct credit (cannot be 0)         |
+| `note`       | string | No       | Optional note (e.g. "Cash payment", "Used advance for this month")        |
+| `extendDays` | number | No       | Extend membership end date by N days (e.g. 30 for monthly, 90 for quarterly) |
+
+**Example — Record payment + extend 30 days (monthly renewal):**
+```json
+{ "amount": 1499, "note": "April fees", "extendDays": 30 }
+```
 
 **Example — Deduct ₹500 from advance credit:**
 ```json
@@ -4045,7 +4053,7 @@ POST /api/contact
 |-----------|--------|----------|--------------------------|
 | `name`    | string | Yes      | Sender's name            |
 | `email`   | string | Yes      | Valid email address      |
-| `phone`   | string | No       | Phone number             |
+| `phone`   | string | Yes      | Phone number (min 10 digits) |
 | `message` | string | Yes      | Message content          |
 
 **Success Response (201 Created):**
