@@ -1,8 +1,8 @@
 # REAUX_labs API Documentation
 
-**Version:** 1.0
+**Version:** 2.0
 **Base URL (local):** `http://localhost:5001/api`
-**Base URL (production):** `https://reaux-labs-be.onrender.com/api`
+**Base URL (production):** `https://api.anishbabbar.me/api`
 
 ---
 
@@ -14,39 +14,36 @@
 4. [Seed Data / Test Accounts](#seed-data--test-accounts)
 5. [Auth](#1-auth)
 6. [Users (Admin)](#2-users-admin)
-7. [Gyms](#3-gyms)
-8. [BMI](#4-bmi)
-9. [Diet Plans](#5-diet-plans)
-10. [Posts / Community](#6-posts--community)
-11. [Reels](#7-reels)
-12. [Products](#8-products)
-13. [Cart](#9-cart)
-14. [Orders](#10-orders)
-15. [Promo Codes](#11-promo-codes)
-16. [Challenges](#12-challenges)
-17. [Notifications](#13-notifications)
-18. [Memberships](#14-memberships)
-19. [Analytics (Admin)](#15-analytics-admin)
-20. [Contact](#16-contact)
-21. [Workouts](#17-workouts)
+7. [Saved Addresses](#3-saved-addresses)
+8. [Gyms](#4-gyms)
+9. [BMI](#5-bmi)
+10. [Diet Plans](#6-diet-plans)
+11. [Posts / Community](#7-posts--community)
+12. [Reels](#8-reels)
+13. [Products](#9-products)
+14. [Cart](#10-cart)
+15. [Orders](#11-orders)
+16. [Promo Codes](#12-promo-codes)
+17. [Challenges](#13-challenges)
+18. [Notifications](#14-notifications)
+19. [Memberships](#15-memberships)
+20. [Analytics (Admin)](#16-analytics-admin)
+21. [Contact](#17-contact)
+22. [Workouts](#18-workouts)
 
 ---
 
 ## Authentication
 
-REAUX_labs uses **JSON Web Tokens (JWT)** for authentication. Tokens are returned upon successful registration or login and expire after **7 days** (configurable via `JWT_EXPIRES_IN`).
+REAUX_labs uses **JSON Web Tokens (JWT)** for authentication. Tokens are returned upon successful registration or login and expire after **30 days** (configurable via `JWT_EXPIRES_IN`).
 
 ### Header Format
-
-Include the token in the `Authorization` header for all protected routes:
 
 ```
 Authorization: Bearer <token>
 ```
 
 ### Token Payload
-
-The JWT payload contains:
 
 | Field    | Type   | Description           |
 |----------|--------|-----------------------|
@@ -67,11 +64,9 @@ The JWT payload contains:
 }
 ```
 
-> The `message` field is included only when the controller explicitly provides one (e.g., "Registration successful", "Login successful", "Profile updated").
-
 ### Paginated Response
 
-All list endpoints that support pagination return data in this envelope. The `limit` parameter is capped at **100** results per page.
+All list endpoints return data in this envelope. The `limit` parameter is capped at **100** results per page.
 
 ```json
 {
@@ -95,80 +90,74 @@ All list endpoints that support pagination return data in this envelope. The `li
 }
 ```
 
-In development mode, a `stack` trace is also included:
-
-```json
-{
-  "success": false,
-  "message": "Description of the error",
-  "stack": "Error: ..."
-}
-```
-
 ### Common Error Codes
 
 | Status Code | Meaning                | Typical Cause                                   |
 |-------------|------------------------|-------------------------------------------------|
 | `400`       | Bad Request            | Validation failure, invalid input               |
-| `401`       | Unauthorized           | Missing/invalid/expired token, wrong credentials |
-| `403`       | Forbidden              | Account disabled, insufficient role permissions  |
-| `404`       | Not Found              | Resource does not exist, invalid route           |
-| `409`       | Conflict               | Duplicate entry (email, gym name, etc.)          |
-| `429`       | Too Many Requests      | Rate limit exceeded                              |
-| `500`       | Internal Server Error  | Unexpected server error                          |
+| `401`       | Unauthorized           | Missing/invalid/expired token                   |
+| `403`       | Forbidden              | Account disabled, insufficient role             |
+| `404`       | Not Found              | Resource does not exist                         |
+| `409`       | Conflict               | Duplicate entry (email, gym name, etc.)         |
+| `500`       | Internal Server Error  | Unexpected server error                         |
 
 ---
 
 ## Roles
 
-| Role         | Description                                                                                      |
-|--------------|--------------------------------------------------------------------------------------------------|
-| `user`       | Default role. Can manage own profile, track BMI, follow diet plans, create posts/reels, shop, join challenges. |
-| `admin`      | Gym administrator. All user permissions plus ability to create diet plans, products, challenges, and view analytics. |
-| `superadmin` | Full system access. All admin permissions plus user management, gym CRUD, promo codes, role/status changes, and sales reports. |
+| Role         | Description |
+|--------------|-------------|
+| `user`       | Default. Manage own profile, track BMI, follow diets, create posts/reels, shop, join challenges. |
+| `admin`      | Gym administrator. All user permissions + create diets/products/workouts/challenges, manage memberships, view analytics. Scoped to their gym(s). |
+| `superadmin` | Full system access. All admin permissions + user management, gym CRUD, promo codes, role/status changes, sales reports. |
 
 ---
 
 ## Seed Data / Test Accounts
 
-Run `node seed.js` to populate the database with test data. This clears all existing data and inserts fresh records.
+Run `npm run seed` to populate the database with test data.
 
-### Test Accounts
+### Test Accounts (all passwords: `Pass1234`)
 
-| Role | Name | Email | Password |
-|------|------|-------|----------|
-| **SuperAdmin** | Anish Babbar | `anish@reauxlabs.com` | `Pass1234` |
-| **Admin** (Delhi Gym) | Rahul Sharma | `rahul@reauxlabs.com` | `Pass1234` |
-| **Admin** (Mumbai Gym) | Priya Patel | `priya@reauxlabs.com` | `Pass1234` |
-| **User** | Arjun Mehta | `arjun@gmail.com` | `Pass1234` |
-| **User** | Sneha Gupta | `sneha@gmail.com` | `Pass1234` |
-| **User** | Vikram Singh | `vikram@gmail.com` | `Pass1234` |
+| Role | Name | Email | Gym |
+|------|------|-------|-----|
+| SuperAdmin | Anish Babbar | `anish@reauxlabs.com` | — |
+| Admin | Rahul Sharma | `rahul@reauxlabs.com` | Delhi |
+| Admin | Priya Patel | `priya@reauxlabs.com` | Mumbai |
+| Admin | Karan Nair | `karan@reauxlabs.com` | Bangalore |
+| User | Arjun Mehta | `arjun@gmail.com` | Delhi |
+| User | Vikram Singh | `vikram@gmail.com` | Delhi |
+| User | Riya Kapoor | `riya@gmail.com` | Delhi |
+| User | Manish Tiwari | `manish@gmail.com` | Delhi |
+| User | Sneha Gupta | `sneha@gmail.com` | Mumbai |
+| User | Rohan Desai | `rohan@gmail.com` | Mumbai |
+| User | Kavya Reddy | `kavya@gmail.com` | Mumbai |
+| User | Aditya Kumar | `aditya@gmail.com` | Bangalore |
+| User | Pooja Sharma | `pooja@gmail.com` | Bangalore |
+| User | Nikhil Menon | `nikhil@gmail.com` | Bangalore |
 
 ### Seeded Data Summary
 
 | Collection | Count | Details |
 |------------|-------|---------|
-| Users | 6 | 1 superadmin, 2 admins, 3 users |
+| Users | 14 | 1 superadmin, 3 admins, 10 users |
 | Gyms | 3 | Delhi, Mumbai, Bangalore |
-| BMI Records | 8 | Progress tracking over months per user |
-| Diet Plans | 3 | Keto, Vegan, High Protein (with meals & macros) |
-| Posts | 5 | Text posts with hashtags, likes, comments |
-| Comments | 4 | On various posts |
-| Reels | 4 | With video URLs, likes |
-| Products | 6 | Supplements, equipment, apparel, accessories |
-| Carts | 2 | Active carts for 2 users |
-| Orders | 4 | Various statuses (pending, confirmed, shipped, delivered) |
-| Promo Codes | 3 | `REAUX20` (20%), `FLAT200` (flat 200), `WELCOME50` (50%) |
-| Challenges | 2 | 30-Day Steps, February Push-Ups (with participants & progress) |
-| Notifications | 8 | Order, challenge, community, diet, system types |
-
-### Promo Codes
-
-| Code | Type | Value | Min Order | Max Discount | Valid Until |
-|------|------|-------|-----------|-------------|-------------|
-| `REAUX20` | Percentage | 20% | 999 | 500 | 2026-06-30 |
-| `FLAT200` | Fixed | 200 | 1500 | - | 2026-03-31 |
-| `WELCOME50` | Percentage | 50% | 0 | 300 | 2026-12-31 |
+| BMI Records | 20 | Progress tracking over months |
+| Diet Plans | 6 | 2 per gym (veg, non-veg, both) |
+| Workouts | 9 | 3 per gym |
+| Posts | 8 | Text posts with hashtags, likes |
+| Comments | 10 | On various posts |
+| Reels | 6 | With video URLs, likes |
+| Reel Comments | 10 | Across reels |
+| Products | 6 | Supplements, equipment, apparel |
+| Carts | 4 | Active carts |
+| Orders | 6 | Various statuses |
+| Promo Codes | 3 | REAUX20, FLAT200, WELCOME50 |
+| Challenges | 3 | Steps, Push-Ups, Plank |
+| Membership Plans | 9 | 3 per gym |
+| User Memberships | 15 | Covering all fee scenarios |
+| Contacts | 6 | 2 open, 4 resolved |
+| Notifications | 12 | Various types |
 
 ---
 
@@ -176,29 +165,16 @@ Run `node seed.js` to populate the database with test data. This clears all exis
 
 ### `GET /api/health`
 
-Quick health-check endpoint. No authentication required. Returns `200` when healthy, `503` when the database is disconnected.
+No authentication required.
 
-**Response (200 OK):**
-
+**Response (200):**
 ```json
 {
   "success": true,
   "message": "REAUX_labs API is running",
-  "timestamp": "2025-06-15T14:00:00.000Z",
+  "timestamp": "2026-03-24T12:00:00.000Z",
   "uptime": 3600.123,
   "database": "connected"
-}
-```
-
-**Response (503 Service Unavailable):**
-
-```json
-{
-  "success": false,
-  "message": "Service degraded",
-  "timestamp": "2025-06-15T14:00:00.000Z",
-  "uptime": 3600.123,
-  "database": "disconnected"
 }
 ```
 
@@ -213,74 +189,33 @@ Base path: `/api/auth`
 ```
 POST /api/auth/register
 ```
-
 **Auth:** None
 
-**Request Body:**
+**Body:**
 
-| Field      | Type   | Required | Constraints              | Description                        |
-|------------|--------|----------|---------------------------|------------------------------------|
-| `name`     | string | Yes      | min: 2, max: 100          | User's full name                   |
-| `email`    | string | Yes      | Valid email format         | User's email address               |
-| `password` | string | Yes      | min: 6, max: 128          | Account password                   |
-| `phone`    | string | No       |                           | Phone number                       |
-| `gymId`    | string | No       | Valid MongoDB ObjectId     | ID of the gym to associate with    |
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `name` | string | Yes | min 2, max 100 |
+| `email` | string | Yes | Valid email |
+| `password` | string | Yes | min 6, max 128 |
+| `phone` | string | No | 10 digits |
+| `gymId` | string | No | MongoDB ObjectId |
 
-**Request Example:**
-
-```json
-{
-  "name": "Arjun Patel",
-  "email": "arjun@example.com",
-  "password": "StrongPass123",
-  "phone": "+91-9876543210",
-  "gymId": "665a1f2e3c4b5d6e7f8a9b0c"
-}
-```
-
-**Success Response (201 Created):**
-
+**Response (201):**
 ```json
 {
   "success": true,
   "message": "Registration successful",
   "data": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "token": "eyJhbGciOi...",
     "user": {
-      "_id": "665b2a3f4d5c6e7f8a9b0d1e",
+      "_id": "...",
       "name": "Arjun Patel",
       "email": "arjun@example.com",
-      "phone": "+91-9876543210",
       "role": "user",
-      "gymId": "665a1f2e3c4b5d6e7f8a9b0c",
-      "status": "active",
-      "createdAt": "2025-06-01T10:30:00.000Z",
-      "updatedAt": "2025-06-01T10:30:00.000Z"
+      "status": "active"
     }
   }
-}
-```
-
-**Error Responses:**
-
-*409 Conflict -- Email already registered:*
-
-```json
-{
-  "success": false,
-  "message": "Email already registered"
-}
-```
-
-*400 Bad Request -- Validation failure:*
-
-```json
-{
-  "success": false,
-  "message": "Validation failed",
-  "errors": [
-    { "path": "body.email", "message": "Invalid email" }
-  ]
 }
 ```
 
@@ -291,136 +226,45 @@ POST /api/auth/register
 ```
 POST /api/auth/login
 ```
-
 **Auth:** None
 
-**Request Body:**
+**Body:** `{ "email": "...", "password": "..." }`
 
-| Field      | Type   | Required | Constraints       | Description        |
-|------------|--------|----------|--------------------|--------------------|
-| `email`    | string | Yes      | Valid email format  | Registered email   |
-| `password` | string | Yes      | min: 1             | Account password   |
-
-**Request Example:**
-
-```json
-{
-  "email": "arjun@example.com",
-  "password": "StrongPass123"
-}
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Login successful",
-  "data": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "user": {
-      "_id": "665b2a3f4d5c6e7f8a9b0d1e",
-      "name": "Arjun Patel",
-      "email": "arjun@example.com",
-      "phone": "+91-9876543210",
-      "role": "user",
-      "gymId": "665a1f2e3c4b5d6e7f8a9b0c",
-      "status": "active",
-      "createdAt": "2025-06-01T10:30:00.000Z",
-      "updatedAt": "2025-06-01T10:30:00.000Z"
-    }
-  }
-}
-```
-
-**Error Responses:**
-
-*401 Unauthorized -- Wrong credentials:*
-
-```json
-{
-  "success": false,
-  "message": "Invalid email or password"
-}
-```
-
-*403 Forbidden -- Account disabled:*
-
-```json
-{
-  "success": false,
-  "message": "Account is disabled"
-}
-```
+**Response (200):** Same shape as register.
 
 ---
 
-### 1.3 Get Current User
+### 1.3 Get Profile
 
 ```
 GET /api/auth/me
 ```
+**Auth:** Required
 
-**Auth:** Bearer Token (any role)
-
-**Request Headers:**
-
-```
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
-
-**Success Response (200 OK):**
-
+**Response (200):**
 ```json
 {
   "success": true,
   "data": {
-    "_id": "665b2a3f4d5c6e7f8a9b0d1e",
-    "name": "Arjun Patel",
-    "email": "arjun@example.com",
-    "phone": "+91-9876543210",
+    "_id": "...",
+    "name": "Arjun Mehta",
+    "firstName": "Arjun",
+    "lastName": "Mehta",
+    "email": "arjun@gmail.com",
+    "phone": "9876543213",
     "role": "user",
-    "gymId": {
-      "_id": "665a1f2e3c4b5d6e7f8a9b0c",
-      "name": "Iron Paradise Gym",
-      "slug": "iron-paradise-gym",
-      "logo": "https://cdn.reauxlabs.com/gyms/iron-paradise-logo.png",
-      "address": {
-        "street": "42 MG Road",
-        "city": "Bangalore",
-        "state": "Karnataka",
-        "pincode": "560001"
-      }
-    },
-    "avatar": "https://cdn.reauxlabs.com/avatars/arjun.jpg",
+    "gymId": { "_id": "...", "name": "REAUX Fitness — Delhi" },
+    "gymIds": [],
+    "avatar": "https://...",
     "height": 175,
     "weight": 72,
-    "dateOfBirth": "1996-03-15T00:00:00.000Z",
+    "dateOfBirth": "2000-01-25T00:00:00.000Z",
+    "dateOfJoining": "2026-01-15T00:00:00.000Z",
     "gender": "male",
     "status": "active",
-    "createdAt": "2025-06-01T10:30:00.000Z",
-    "updatedAt": "2025-06-10T14:20:00.000Z"
+    "savedAddresses": [...],
+    "fcmTokens": []
   }
-}
-```
-
-**Error Responses:**
-
-*401 Unauthorized -- No token:*
-
-```json
-{
-  "success": false,
-  "message": "No authentication token provided"
-}
-```
-
-*401 Unauthorized -- Invalid/expired token:*
-
-```json
-{
-  "success": false,
-  "message": "Invalid or expired token"
 }
 ```
 
@@ -431,65 +275,24 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 PUT /api/auth/profile
 ```
+**Auth:** Required
+**Content-Type:** `multipart/form-data` (if uploading avatar) or `application/json`
 
-**Auth:** Bearer Token (any role)
+**Body:**
 
-**Request Body:**
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `name` | string | No | |
+| `firstName` | string | No | |
+| `lastName` | string | No | |
+| `phone` | string | No | 10 digits |
+| `height` | number | No | In cm |
+| `weight` | number | No | In kg |
+| `dateOfBirth` | string | No | ISO date |
+| `gender` | string | No | male, female, other |
+| `avatar` | file | No | jpeg/png/webp, max 5MB |
 
-| Field         | Type   | Required | Constraints                       | Description          |
-|---------------|--------|----------|------------------------------------|-----------------------|
-| `name`        | string | No       | min: 2, max: 100                   | Full name            |
-| `phone`       | string | No       |                                    | Phone number         |
-| `height`      | number | No       | Must be positive                   | Height in cm         |
-| `weight`      | number | No       | Must be positive                   | Weight in kg         |
-| `dateOfBirth` | string | No       | Date string (e.g., "1996-03-15")   | Date of birth        |
-| `gender`      | string | No       | One of: `male`, `female`, `other`  | Gender               |
-
-**Request Example:**
-
-```json
-{
-  "height": 175,
-  "weight": 72,
-  "gender": "male",
-  "dateOfBirth": "1996-03-15"
-}
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Profile updated",
-  "data": {
-    "_id": "665b2a3f4d5c6e7f8a9b0d1e",
-    "name": "Arjun Patel",
-    "email": "arjun@example.com",
-    "phone": "+91-9876543210",
-    "role": "user",
-    "gymId": {
-      "_id": "665a1f2e3c4b5d6e7f8a9b0c",
-      "name": "Iron Paradise Gym",
-      "slug": "iron-paradise-gym",
-      "logo": "https://cdn.reauxlabs.com/gyms/iron-paradise-logo.png",
-      "address": {
-        "street": "42 MG Road",
-        "city": "Bangalore",
-        "state": "Karnataka",
-        "pincode": "560001"
-      }
-    },
-    "height": 175,
-    "weight": 72,
-    "dateOfBirth": "1996-03-15T00:00:00.000Z",
-    "gender": "male",
-    "status": "active",
-    "createdAt": "2025-06-01T10:30:00.000Z",
-    "updatedAt": "2025-06-10T14:20:00.000Z"
-  }
-}
-```
+**Response (200):** Updated user object.
 
 ---
 
@@ -498,31 +301,15 @@ PUT /api/auth/profile
 ```
 POST /api/auth/forgot-password
 ```
-
 **Auth:** None
 
-Sends a password reset email if the email exists. Always returns success to prevent email enumeration.
+**Body:** `{ "email": "user@example.com" }`
 
-**Request Body:**
-
-| Field   | Type   | Required | Constraints       | Description      |
-|---------|--------|----------|-------------------|------------------|
-| `email` | string | Yes      | Valid email format | Account email    |
-
-**Request Example:**
-
-```json
-{
-  "email": "arjun@example.com"
-}
-```
-
-**Success Response (200 OK):**
-
+**Response (200):**
 ```json
 {
   "success": true,
-  "message": "If that email exists, a reset link has been sent"
+  "message": "Password reset email sent"
 }
 ```
 
@@ -533,44 +320,15 @@ Sends a password reset email if the email exists. Always returns success to prev
 ```
 POST /api/auth/reset-password
 ```
-
 **Auth:** None
 
-Resets the user's password using a valid reset token (received via email). Tokens expire after 1 hour and can only be used once.
+**Body:** `{ "token": "abc123...", "password": "NewPass123" }`
 
-**Request Body:**
-
-| Field         | Type   | Required | Constraints | Description                         |
-|---------------|--------|----------|-------------|-------------------------------------|
-| `token`       | string | Yes      | min: 1       | Reset token from the email link     |
-| `newPassword` | string | Yes      | min: 6       | New password                        |
-
-**Request Example:**
-
-```json
-{
-  "token": "a1b2c3d4e5f6...",
-  "newPassword": "NewStrongPass456"
-}
-```
-
-**Success Response (200 OK):**
-
+**Response (200):**
 ```json
 {
   "success": true,
   "message": "Password reset successful"
-}
-```
-
-**Error Responses:**
-
-*400 Bad Request -- Invalid or expired token:*
-
-```json
-{
-  "success": false,
-  "message": "Invalid or expired reset token"
 }
 ```
 
@@ -580,2999 +338,1228 @@ Resets the user's password using a valid reset token (received via email). Token
 
 Base path: `/api/users`
 
-All endpoints in this module require authentication and elevated role permissions.
-
-### 2.1 List Users
+### 2.1 Create User
 
 ```
-GET /api/users
+POST /api/users
 ```
+**Auth:** Required (admin, superadmin)
 
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
+**Body:**
 
-**Query Parameters:**
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `firstName` | string | No | |
+| `lastName` | string | No | |
+| `name` | string | No | Auto-derived from firstName + lastName |
+| `email` | string | Yes | |
+| `password` | string | Yes | min 6 |
+| `phone` | string | No | 10 digits exactly |
+| `role` | string | No | user (default), admin, superadmin |
+| `gymId` | string | No | Admin auto-assigns own gym |
+| `gender` | string | No | male, female, other |
+| `dateOfBirth` | string | No | ISO date |
+| `dateOfJoining` | string | No | ISO date |
+| `status` | string | No | active (default), disabled |
 
-| Parameter | Type   | Default | Description               |
-|-----------|--------|---------|----------------------------|
-| `page`    | number | 1       | Page number                |
-| `limit`   | number | 10      | Results per page           |
-
-**Request Example:**
-
-```
-GET /api/users?page=1&limit=10
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "_id": "665b2a3f4d5c6e7f8a9b0d1e",
-      "name": "Arjun Patel",
-      "email": "arjun@example.com",
-      "phone": "+91-9876543210",
-      "role": "user",
-      "gymId": "665a1f2e3c4b5d6e7f8a9b0c",
-      "status": "active",
-      "createdAt": "2025-06-01T10:30:00.000Z",
-      "updatedAt": "2025-06-10T14:20:00.000Z"
-    },
-    {
-      "_id": "665c3b4a5e6d7f8a9b0c1d2f",
-      "name": "Priya Sharma",
-      "email": "priya@example.com",
-      "role": "admin",
-      "gymId": "665a1f2e3c4b5d6e7f8a9b0c",
-      "status": "active",
-      "createdAt": "2025-05-20T08:15:00.000Z",
-      "updatedAt": "2025-06-05T11:45:00.000Z"
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "total": 45,
-    "pages": 5
-  }
-}
-```
-
-**Error Responses:**
-
-*403 Forbidden -- Insufficient role:*
-
-```json
-{
-  "success": false,
-  "message": "Insufficient permissions"
-}
-```
+**Response (201):** Created user object. Welcome email sent automatically.
 
 ---
 
-### 2.2 Get User by ID
+### 2.2 List Users
+
+```
+GET /api/users?page=1&limit=10&role=user&gymId=...
+```
+**Auth:** Required (admin, superadmin)
+
+Admin sees only their gym's users. Superadmin sees all.
+
+**Response (200):** Paginated user list with `gymId` populated.
+
+---
+
+### 2.3 Get User by ID
 
 ```
 GET /api/users/:id
 ```
+**Auth:** Required (admin, superadmin)
 
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
-
-**URL Parameters:**
-
-| Parameter | Type   | Description     |
-|-----------|--------|-----------------|
-| `id`      | string | User's MongoDB ID |
-
-**Success Response (200 OK):**
-
+**Response (200):**
 ```json
 {
   "success": true,
   "data": {
-    "_id": "665b2a3f4d5c6e7f8a9b0d1e",
-    "name": "Arjun Patel",
-    "email": "arjun@example.com",
-    "phone": "+91-9876543210",
+    "_id": "...",
+    "name": "Arjun Mehta",
+    "email": "arjun@gmail.com",
     "role": "user",
-    "gymId": "665a1f2e3c4b5d6e7f8a9b0c",
-    "avatar": "https://cdn.reauxlabs.com/avatars/arjun.jpg",
-    "height": 175,
-    "weight": 72,
-    "dateOfBirth": "1996-03-15T00:00:00.000Z",
-    "gender": "male",
-    "status": "active",
-    "createdAt": "2025-06-01T10:30:00.000Z",
-    "updatedAt": "2025-06-10T14:20:00.000Z"
+    "gymId": { "_id": "...", "name": "REAUX Fitness — Delhi", "slug": "...", "logo": "...", "address": "..." },
+    "gymIds": [],
+    "savedAddresses": [...]
   }
-}
-```
-
-**Error Responses:**
-
-*404 Not Found:*
-
-```json
-{
-  "success": false,
-  "message": "User not found"
 }
 ```
 
 ---
 
-### 2.3 Update User Role
+### 2.4 Update User
+
+```
+PUT /api/users/:id
+```
+**Auth:** Required (admin, superadmin)
+
+**Body:** Same fields as Create User (all optional). Admin cannot change role or gymId.
+
+---
+
+### 2.5 Update User Role
 
 ```
 PUT /api/users/:id/role
 ```
+**Auth:** Required (superadmin only)
 
-**Auth:** Bearer Token
-**Role:** `superadmin` only
-
-**URL Parameters:**
-
-| Parameter | Type   | Description     |
-|-----------|--------|-----------------|
-| `id`      | string | User's MongoDB ID |
-
-**Request Body:**
-
-| Field  | Type   | Required | Constraints                              | Description |
-|--------|--------|----------|-------------------------------------------|-------------|
-| `role` | string | Yes      | One of: `user`, `admin`, `superadmin`      | New role    |
-
-**Request Example:**
-
-```json
-{
-  "role": "admin"
-}
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "User role updated",
-  "data": {
-    "_id": "665b2a3f4d5c6e7f8a9b0d1e",
-    "name": "Arjun Patel",
-    "email": "arjun@example.com",
-    "role": "admin",
-    "status": "active",
-    "createdAt": "2025-06-01T10:30:00.000Z",
-    "updatedAt": "2025-06-12T09:00:00.000Z"
-  }
-}
-```
-
-**Error Responses:**
-
-*403 Forbidden -- Not superadmin:*
-
-```json
-{
-  "success": false,
-  "message": "Insufficient permissions"
-}
-```
+**Body:** `{ "role": "admin" }`
 
 ---
 
-### 2.4 Update User Status
+### 2.6 Update User Status
 
 ```
 PUT /api/users/:id/status
 ```
+**Auth:** Required (superadmin only)
 
-**Auth:** Bearer Token
-**Role:** `superadmin` only
-
-**URL Parameters:**
-
-| Parameter | Type   | Description     |
-|-----------|--------|-----------------|
-| `id`      | string | User's MongoDB ID |
-
-**Request Body:**
-
-| Field    | Type   | Required | Constraints                     | Description |
-|----------|--------|----------|---------------------------------|-------------|
-| `status` | string | Yes      | One of: `active`, `disabled`     | New status  |
-
-**Request Example:**
-
-```json
-{
-  "status": "disabled"
-}
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "User status updated",
-  "data": {
-    "_id": "665b2a3f4d5c6e7f8a9b0d1e",
-    "name": "Arjun Patel",
-    "email": "arjun@example.com",
-    "role": "user",
-    "status": "disabled",
-    "createdAt": "2025-06-01T10:30:00.000Z",
-    "updatedAt": "2025-06-12T09:05:00.000Z"
-  }
-}
-```
+**Body:** `{ "status": "disabled" }`
 
 ---
 
-## 3. Gyms
+### 2.7 Today's Birthdays
 
-Base path: `/api/gyms`
-
-### 3.1 Create Gym
-
-```
-POST /api/gyms
-```
-
-**Auth:** Bearer Token
-**Role:** `superadmin` only
-
-**Request Body:**
-
-| Field                      | Type     | Required | Constraints           | Description                  |
-|----------------------------|----------|----------|-----------------------|------------------------------|
-| `name`                     | string   | Yes      | min: 2, max: 200       | Gym name                     |
-| `description`              | string   | No       | max: 2000              | Gym description              |
-| `address`                  | object   | Yes      |                       | Address object               |
-| `address.street`           | string   | Yes      | min: 1                 | Street address               |
-| `address.city`             | string   | Yes      | min: 1                 | City                         |
-| `address.state`            | string   | Yes      | min: 1                 | State                        |
-| `address.pincode`          | string   | Yes      | min: 1                 | PIN code                     |
-| `address.coordinates`      | object   | No       |                       | Geo coordinates              |
-| `address.coordinates.lat`  | number   | No       |                       | Latitude                     |
-| `address.coordinates.lng`  | number   | No       |                       | Longitude                    |
-| `phone`                    | string   | No       |                       | Contact phone                |
-| `email`                    | string   | No       | Valid email format     | Contact email                |
-| `amenities`                | string[] | No       |                       | List of amenities            |
-| `openingHours`             | object   | No       |                       | Weekly hours                 |
-| `openingHours.[day]`       | object   | No       |                       | Per-day hours                |
-| `openingHours.[day].open`  | string   | No       |                       | Opening time (e.g., "06:00") |
-| `openingHours.[day].close` | string   | No       |                       | Closing time (e.g., "22:00") |
-
-> `[day]` can be: `monday`, `tuesday`, `wednesday`, `thursday`, `friday`, `saturday`, `sunday`
-
-**Request Example:**
-
-```json
-{
-  "name": "Iron Paradise Gym",
-  "description": "Premium fitness center with state-of-the-art equipment and certified trainers.",
-  "address": {
-    "street": "42 MG Road",
-    "city": "Bangalore",
-    "state": "Karnataka",
-    "pincode": "560001",
-    "coordinates": {
-      "lat": 12.9716,
-      "lng": 77.5946
-    }
-  },
-  "phone": "+91-80-12345678",
-  "email": "info@ironparadise.com",
-  "amenities": ["cardio", "free-weights", "steam-room", "personal-training", "parking"],
-  "openingHours": {
-    "monday": { "open": "05:30", "close": "22:00" },
-    "tuesday": { "open": "05:30", "close": "22:00" },
-    "wednesday": { "open": "05:30", "close": "22:00" },
-    "thursday": { "open": "05:30", "close": "22:00" },
-    "friday": { "open": "05:30", "close": "22:00" },
-    "saturday": { "open": "07:00", "close": "20:00" },
-    "sunday": { "open": "07:00", "close": "18:00" }
-  }
-}
-```
-
-**Success Response (201 Created):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "665a1f2e3c4b5d6e7f8a9b0c",
-    "name": "Iron Paradise Gym",
-    "slug": "iron-paradise-gym",
-    "description": "Premium fitness center with state-of-the-art equipment and certified trainers.",
-    "address": {
-      "street": "42 MG Road",
-      "city": "Bangalore",
-      "state": "Karnataka",
-      "pincode": "560001",
-      "coordinates": { "lat": 12.9716, "lng": 77.5946 }
-    },
-    "phone": "+91-80-12345678",
-    "email": "info@ironparadise.com",
-    "amenities": ["cardio", "free-weights", "steam-room", "personal-training", "parking"],
-    "openingHours": {
-      "monday": { "open": "05:30", "close": "22:00" },
-      "tuesday": { "open": "05:30", "close": "22:00" },
-      "wednesday": { "open": "05:30", "close": "22:00" },
-      "thursday": { "open": "05:30", "close": "22:00" },
-      "friday": { "open": "05:30", "close": "22:00" },
-      "saturday": { "open": "07:00", "close": "20:00" },
-      "sunday": { "open": "07:00", "close": "18:00" }
-    },
-    "images": [],
-    "isActive": true,
-    "createdBy": "665d4c5b6e7f8a9b0c1d2e3f",
-    "createdAt": "2025-06-01T08:00:00.000Z",
-    "updatedAt": "2025-06-01T08:00:00.000Z"
-  }
-}
-```
-
-**Error Responses:**
-
-*409 Conflict -- Duplicate gym name:*
-
-```json
-{
-  "success": false,
-  "message": "A gym with this name already exists"
-}
-```
-
----
-
-### 3.2 List Gyms
-
-```
-GET /api/gyms
-```
-
-**Auth:** None (public)
-
-**Query Parameters:**
-
-| Parameter | Type   | Default | Description                           |
-|-----------|--------|---------|----------------------------------------|
-| `page`    | number | 1       | Page number                            |
-| `limit`   | number | 10      | Results per page                       |
-| `city`    | string |         | Filter by city (case-insensitive)      |
-| `sort`    | string |         | Sort field (default: newest first)     |
-
-**Request Example:**
-
-```
-GET /api/gyms?page=1&limit=5&city=Bangalore
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "_id": "665a1f2e3c4b5d6e7f8a9b0c",
-      "name": "Iron Paradise Gym",
-      "slug": "iron-paradise-gym",
-      "description": "Premium fitness center with state-of-the-art equipment.",
-      "address": {
-        "street": "42 MG Road",
-        "city": "Bangalore",
-        "state": "Karnataka",
-        "pincode": "560001"
-      },
-      "amenities": ["cardio", "free-weights", "steam-room"],
-      "isActive": true,
-      "createdAt": "2025-06-01T08:00:00.000Z",
-      "updatedAt": "2025-06-01T08:00:00.000Z"
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 5,
-    "total": 12,
-    "pages": 3
-  }
-}
-```
-
-> Only active gyms (`isActive: true`) are returned.
-
----
-
-### 3.3 Get Gym by ID
-
-```
-GET /api/gyms/:id
-```
-
-**Auth:** None (public)
-
-**URL Parameters:**
-
-| Parameter | Type   | Description     |
-|-----------|--------|-----------------|
-| `id`      | string | Gym's MongoDB ID |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "665a1f2e3c4b5d6e7f8a9b0c",
-    "name": "Iron Paradise Gym",
-    "slug": "iron-paradise-gym",
-    "description": "Premium fitness center with state-of-the-art equipment and certified trainers.",
-    "address": {
-      "street": "42 MG Road",
-      "city": "Bangalore",
-      "state": "Karnataka",
-      "pincode": "560001",
-      "coordinates": { "lat": 12.9716, "lng": 77.5946 }
-    },
-    "phone": "+91-80-12345678",
-    "email": "info@ironparadise.com",
-    "images": ["https://cdn.reauxlabs.com/gyms/iron-paradise-1.jpg"],
-    "logo": "https://cdn.reauxlabs.com/gyms/iron-paradise-logo.png",
-    "amenities": ["cardio", "free-weights", "steam-room", "personal-training", "parking"],
-    "openingHours": {
-      "monday": { "open": "05:30", "close": "22:00" },
-      "saturday": { "open": "07:00", "close": "20:00" },
-      "sunday": { "open": "07:00", "close": "18:00" }
-    },
-    "isActive": true,
-    "createdBy": {
-      "_id": "665d4c5b6e7f8a9b0c1d2e3f",
-      "name": "Vikram Singh",
-      "email": "vikram@reauxlabs.com"
-    },
-    "createdAt": "2025-06-01T08:00:00.000Z",
-    "updatedAt": "2025-06-01T08:00:00.000Z"
-  }
-}
-```
-
-**Error Responses:**
-
-*404 Not Found:*
-
-```json
-{
-  "success": false,
-  "message": "Gym not found"
-}
-```
-
----
-
-### 3.4 Update Gym
-
-```
-PUT /api/gyms/:id
-```
-
-**Auth:** Bearer Token
-**Role:** `superadmin` only
-
-**URL Parameters:**
-
-| Parameter | Type   | Description     |
-|-----------|--------|-----------------|
-| `id`      | string | Gym's MongoDB ID |
-
-**Request Body:**
-
-All fields from the create schema are accepted, but all are optional. Additional fields:
-
-| Field      | Type     | Required | Description                      |
-|------------|----------|----------|----------------------------------|
-| `images`   | string[] | No       | Array of image URLs              |
-| `logo`     | string   | No       | Logo URL                         |
-| `isActive` | boolean  | No       | Whether the gym is active        |
-
-**Request Example:**
-
-```json
-{
-  "description": "Updated: Now with an Olympic swimming pool!",
-  "amenities": ["cardio", "free-weights", "steam-room", "swimming-pool", "personal-training"],
-  "logo": "https://cdn.reauxlabs.com/gyms/iron-paradise-logo-v2.png"
-}
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "665a1f2e3c4b5d6e7f8a9b0c",
-    "name": "Iron Paradise Gym",
-    "slug": "iron-paradise-gym",
-    "description": "Updated: Now with an Olympic swimming pool!",
-    "amenities": ["cardio", "free-weights", "steam-room", "swimming-pool", "personal-training"],
-    "logo": "https://cdn.reauxlabs.com/gyms/iron-paradise-logo-v2.png",
-    "isActive": true,
-    "updatedAt": "2025-06-12T10:00:00.000Z"
-  }
-}
-```
-
----
-
-### 3.5 Delete Gym (Soft Delete)
-
-```
-DELETE /api/gyms/:id
-```
-
-**Auth:** Bearer Token
-**Role:** `superadmin` only
-
-**URL Parameters:**
-
-| Parameter | Type   | Description     |
-|-----------|--------|-----------------|
-| `id`      | string | Gym's MongoDB ID |
-
-> This performs a **soft delete** by setting `isActive` to `false`. The gym record is not physically removed from the database.
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "665a1f2e3c4b5d6e7f8a9b0c",
-    "name": "Iron Paradise Gym",
-    "isActive": false,
-    "updatedAt": "2025-06-12T10:30:00.000Z"
-  }
-}
-```
-
-**Error Responses:**
-
-*404 Not Found:*
-
-```json
-{
-  "success": false,
-  "message": "Gym not found"
-}
-```
-
----
-
-### 3.6 Assign Gym Admin
-
-```
-POST /api/gyms/:id/assign-admin
-```
-
-**Auth:** Bearer Token
-**Role:** `superadmin` only
-
-Promotes a user to the `admin` role and associates them with the specified gym. **Supports multiple gyms per admin** — calling this endpoint for a second gym on the same user adds that gym to their `gymIds` list without removing the first. The admin's `gymId` (primary) stays as their first assigned gym.
-
-**URL Parameters:**
-
-| Parameter | Type   | Description     |
-|-----------|--------|-----------------|
-| `id`      | string | Gym's MongoDB ID |
-
-**Request Body:**
-
-| Field    | Type   | Required | Constraints             | Description                  |
-|----------|--------|----------|--------------------------|------------------------------|
-| `userId` | string | Yes      | min: 1, valid ObjectId   | ID of the user to promote    |
-
-**Request Example:**
-
-```json
-{
-  "userId": "665c3b4a5e6d7f8a9b0c1d2f"
-}
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "665c3b4a5e6d7f8a9b0c1d2f",
-    "name": "Priya Sharma",
-    "email": "priya@example.com",
-    "role": "admin",
-    "gymId": "665a1f2e3c4b5d6e7f8a9b0c",
-    "status": "active",
-    "updatedAt": "2025-06-12T11:00:00.000Z"
-  }
-}
-```
-
-**Error Responses:**
-
-*404 Not Found -- Gym or user not found:*
-
-```json
-{
-  "success": false,
-  "message": "Gym not found"
-}
-```
-
-```json
-{
-  "success": false,
-  "message": "User not found"
-}
-```
-
----
-
-## 4. BMI
-
-Base path: `/api/bmi`
-
-All BMI endpoints require authentication. Records are scoped to the authenticated user.
-
-### 4.1 Record BMI
-
-```
-POST /api/bmi/record
-```
-
-**Auth:** Bearer Token (any role)
-
-**Request Body:**
-
-| Field    | Type   | Required | Constraints    | Description            |
-|----------|--------|----------|----------------|------------------------|
-| `height` | number | Yes      | Must be positive | Height in centimeters |
-| `weight` | number | Yes      | Must be positive | Weight in kilograms   |
-
-> The BMI value and category (`underweight`, `normal`, `overweight`, `obese`) are calculated automatically by the server.
-
-**Request Example:**
-
-```json
-{
-  "height": 175,
-  "weight": 72
-}
-```
-
-**Success Response (201 Created):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "665e5d6c7f8a9b0c1d2e3f40",
-    "userId": "665b2a3f4d5c6e7f8a9b0d1e",
-    "height": 175,
-    "weight": 72,
-    "bmi": 23.51,
-    "category": "normal",
-    "createdAt": "2025-06-12T12:00:00.000Z",
-    "updatedAt": "2025-06-12T12:00:00.000Z"
-  }
-}
-```
-
----
-
-### 4.2 Get BMI History
-
-```
-GET /api/bmi/history
-```
-
-**Auth:** Bearer Token (any role)
-
-Returns the authenticated user's BMI records in reverse chronological order.
-
-**Query Parameters:**
-
-| Parameter | Type   | Default | Description     |
-|-----------|--------|---------|-----------------|
-| `page`    | number | 1       | Page number     |
-| `limit`   | number | 10      | Results per page |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "_id": "665e5d6c7f8a9b0c1d2e3f40",
-      "userId": "665b2a3f4d5c6e7f8a9b0d1e",
-      "height": 175,
-      "weight": 72,
-      "bmi": 23.51,
-      "category": "normal",
-      "createdAt": "2025-06-12T12:00:00.000Z"
-    },
-    {
-      "_id": "665d4c5b6e7f8a9b0c1d2e3a",
-      "userId": "665b2a3f4d5c6e7f8a9b0d1e",
-      "height": 175,
-      "weight": 78,
-      "bmi": 25.47,
-      "category": "overweight",
-      "createdAt": "2025-05-01T08:00:00.000Z"
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "total": 8,
-    "pages": 1
-  }
-}
-```
-
----
-
-### 4.3 Get Latest BMI
-
-```
-GET /api/bmi/latest
-```
-
-**Auth:** Bearer Token (any role)
-
-Returns the most recent BMI record for the authenticated user.
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "665e5d6c7f8a9b0c1d2e3f40",
-    "userId": "665b2a3f4d5c6e7f8a9b0d1e",
-    "height": 175,
-    "weight": 72,
-    "bmi": 23.51,
-    "category": "normal",
-    "createdAt": "2025-06-12T12:00:00.000Z"
-  }
-}
-```
-
----
-
-## 5. Diet Plans
-
-Base path: `/api/diets`
-
-### 5.1 Create Diet Plan
-
-```
-POST /api/diets
-```
-
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
-
-**Request Body:**
-
-| Field                     | Type     | Required | Constraints                                                                 | Description                  |
-|---------------------------|----------|----------|-----------------------------------------------------------------------------|------------------------------|
-| `title`                   | string   | Yes      | min: 2, max: 200                                                             | Diet plan title              |
-| `category`                | string   | Yes      | One of: `weight-loss`, `muscle-gain`, `maintenance`, `keto`, `vegan`, `other` | Plan category                |
-| `description`             | string   | No       | max: 2000                                                                    | Plan description             |
-| `meals`                   | array    | No       |                                                                             | Array of meal objects        |
-| `meals[].name`            | string   | Yes      | min: 1                                                                       | Meal name (e.g., "Breakfast") |
-| `meals[].time`            | string   | No       |                                                                             | Suggested time (e.g., "08:00") |
-| `meals[].items`           | array    | No       |                                                                             | Array of food items          |
-| `meals[].items[].name`    | string   | Yes      | min: 1                                                                       | Food item name               |
-| `meals[].items[].quantity`| string   | No       |                                                                             | Quantity (e.g., "200g")      |
-| `meals[].items[].calories`| number   | No       |                                                                             | Calories                     |
-| `meals[].items[].protein` | number   | No       |                                                                             | Protein in grams             |
-| `meals[].items[].carbs`   | number   | No       |                                                                             | Carbs in grams               |
-| `meals[].items[].fat`     | number   | No       |                                                                             | Fat in grams                 |
-| `image`                   | string   | No       |                                                                             | Cover image URL              |
-| `totalCalories`           | number   | No       | Must be positive                                                             | Total daily calories         |
-| `tags`                    | string[] | No       |                                                                             | Searchable tags              |
-| `isPublished`             | boolean  | No       | Default: `false`                                                             | Whether publicly visible     |
-
-**Request Example:**
-
-```json
-{
-  "title": "Lean Muscle Builder - 2500 Cal",
-  "category": "muscle-gain",
-  "description": "A high-protein diet plan designed for lean muscle growth with clean eating.",
-  "totalCalories": 2500,
-  "isPublished": true,
-  "tags": ["high-protein", "muscle-gain", "clean-eating"],
-  "meals": [
-    {
-      "name": "Breakfast",
-      "time": "07:30",
-      "items": [
-        { "name": "Egg whites", "quantity": "6 eggs", "calories": 102, "protein": 22, "carbs": 0, "fat": 0 },
-        { "name": "Oatmeal", "quantity": "80g", "calories": 300, "protein": 10, "carbs": 54, "fat": 5 },
-        { "name": "Banana", "quantity": "1 medium", "calories": 105, "protein": 1, "carbs": 27, "fat": 0 }
-      ]
-    },
-    {
-      "name": "Post-Workout Shake",
-      "time": "10:30",
-      "items": [
-        { "name": "Whey Protein", "quantity": "1 scoop", "calories": 120, "protein": 25, "carbs": 3, "fat": 1 },
-        { "name": "Peanut Butter", "quantity": "1 tbsp", "calories": 95, "protein": 4, "carbs": 3, "fat": 8 }
-      ]
-    }
-  ]
-}
-```
-
-**Success Response (201 Created):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "665f6e7d8a9b0c1d2e3f4051",
-    "title": "Lean Muscle Builder - 2500 Cal",
-    "slug": "lean-muscle-builder-2500-cal",
-    "category": "muscle-gain",
-    "description": "A high-protein diet plan designed for lean muscle growth with clean eating.",
-    "totalCalories": 2500,
-    "isPublished": true,
-    "tags": ["high-protein", "muscle-gain", "clean-eating"],
-    "meals": [ ... ],
-    "followers": [],
-    "likes": [],
-    "createdBy": "665d4c5b6e7f8a9b0c1d2e3f",
-    "createdAt": "2025-06-12T14:00:00.000Z",
-    "updatedAt": "2025-06-12T14:00:00.000Z"
-  }
-}
-```
-
----
-
-### 5.2 Update Diet Plan
-
-```
-PUT /api/diets/:id
-```
-
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
-
-**URL Parameters:**
-
-| Parameter | Type   | Description          |
-|-----------|--------|----------------------|
-| `id`      | string | Diet plan's MongoDB ID |
-
-**Request Body:** Same fields as create, but all are optional.
-
-**Request Example:**
-
-```json
-{
-  "totalCalories": 2600,
-  "isPublished": true
-}
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "665f6e7d8a9b0c1d2e3f4051",
-    "title": "Lean Muscle Builder - 2500 Cal",
-    "totalCalories": 2600,
-    "isPublished": true,
-    "updatedAt": "2025-06-13T09:00:00.000Z"
-  }
-}
-```
-
----
-
-### 5.3 List Diet Plans
-
-```
-GET /api/diets
-```
-
-**Auth:** None (public)
-
-**Query Parameters:**
-
-| Parameter  | Type   | Default | Description                           |
-|------------|--------|---------|----------------------------------------|
-| `page`     | number | 1       | Page number                            |
-| `limit`    | number | 10      | Results per page                       |
-| `category` | string |         | Filter by category (e.g., `keto`)      |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "_id": "665f6e7d8a9b0c1d2e3f4051",
-      "title": "Lean Muscle Builder - 2500 Cal",
-      "slug": "lean-muscle-builder-2500-cal",
-      "category": "muscle-gain",
-      "description": "A high-protein diet plan designed for lean muscle growth.",
-      "totalCalories": 2500,
-      "image": "https://cdn.reauxlabs.com/diets/muscle-builder.jpg",
-      "tags": ["high-protein", "muscle-gain", "clean-eating"],
-      "isPublished": true,
-      "createdAt": "2025-06-12T14:00:00.000Z"
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "total": 15,
-    "pages": 2
-  }
-}
-```
-
----
-
-### 5.4 Get Diet Plan by ID
-
-```
-GET /api/diets/:id
-```
-
-**Auth:** None (public)
-
-**URL Parameters:**
-
-| Parameter | Type   | Description          |
-|-----------|--------|----------------------|
-| `id`      | string | Diet plan's MongoDB ID |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "665f6e7d8a9b0c1d2e3f4051",
-    "title": "Lean Muscle Builder - 2500 Cal",
-    "slug": "lean-muscle-builder-2500-cal",
-    "category": "muscle-gain",
-    "description": "A high-protein diet plan designed for lean muscle growth with clean eating.",
-    "totalCalories": 2500,
-    "meals": [
-      {
-        "name": "Breakfast",
-        "time": "07:30",
-        "items": [
-          { "name": "Egg whites", "quantity": "6 eggs", "calories": 102, "protein": 22, "carbs": 0, "fat": 0 },
-          { "name": "Oatmeal", "quantity": "80g", "calories": 300, "protein": 10, "carbs": 54, "fat": 5 }
-        ]
-      }
-    ],
-    "tags": ["high-protein", "muscle-gain", "clean-eating"],
-    "followers": ["665b2a3f4d5c6e7f8a9b0d1e"],
-    "likes": ["665b2a3f4d5c6e7f8a9b0d1e", "665c3b4a5e6d7f8a9b0c1d2f"],
-    "isPublished": true,
-    "createdBy": "665d4c5b6e7f8a9b0c1d2e3f",
-    "createdAt": "2025-06-12T14:00:00.000Z"
-  }
-}
-```
-
----
-
-### 5.5 Follow/Unfollow Diet Plan
-
-```
-POST /api/diets/:id/follow
-```
-
-**Auth:** Bearer Token (any role)
-
-Toggles the authenticated user's follow status on the diet plan. If the user is currently following, they will unfollow; if not following, they will follow.
-
-**URL Parameters:**
-
-| Parameter | Type   | Description          |
-|-----------|--------|----------------------|
-| `id`      | string | Diet plan's MongoDB ID |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Diet plan followed"
-}
-```
-
-or
-
-```json
-{
-  "success": true,
-  "message": "Diet plan unfollowed"
-}
-```
-
----
-
-### 5.6 Like/Unlike Diet Plan
-
-```
-POST /api/diets/:id/like
-```
-
-**Auth:** Bearer Token (any role)
-
-Toggles the authenticated user's like on the diet plan.
-
-**URL Parameters:**
-
-| Parameter | Type   | Description          |
-|-----------|--------|----------------------|
-| `id`      | string | Diet plan's MongoDB ID |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Diet plan liked"
-}
-```
-
-or
-
-```json
-{
-  "success": true,
-  "message": "Diet plan unliked"
-}
-```
-
----
-
-### 5.7 Get Suggested Diets (BMI-Based)
-
-```
-GET /api/diets/suggested
-```
-
-**Auth:** Bearer Token (any role)
-
-Returns diet plan recommendations based on the authenticated user's most recent BMI record. Uses a rule-based mapping from BMI category to diet category and calorie range.
-
-**BMI-to-Diet Mapping:**
-
-| BMI Category | Suggested Diet Category | Calorie Range |
-|-------------|------------------------|---------------|
-| underweight | `muscle-gain` | 2500–3500 |
-| normal | `maintenance` | 1800–2500 |
-| overweight | `weight-loss` | 1200–1800 |
-| obese | `weight-loss` | 1000–1500 |
-
-**Fallback Logic:**
-1. Match by category + calorie range
-2. If no results → match by category only (ignore calorie range)
-3. If still no results → return all published diets
-
-**Query Parameters:**
-
-| Parameter | Type   | Default | Description      |
-|-----------|--------|---------|------------------|
-| `page`    | number | 1       | Page number      |
-| `limit`   | number | 10      | Results per page |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "suggestion": {
-    "bmiCategory": "normal",
-    "bmi": 22.5,
-    "recommendedCategory": "maintenance",
-    "calorieRange": { "min": 1800, "max": 2500 }
-  },
-  "data": [
-    {
-      "_id": "665f6e7d8a9b0c1d2e3f4051",
-      "title": "Balanced Maintenance Plan",
-      "slug": "balanced-maintenance-plan",
-      "category": "maintenance",
-      "totalCalories": 2000,
-      "image": "https://cdn.reauxlabs.com/diets/maintenance.jpg",
-      "isPublished": true,
-      "createdBy": {
-        "_id": "665d4c5b6e7f8a9b0c1d2e3f",
-        "name": "Rahul Sharma",
-        "avatar": "https://cdn.reauxlabs.com/profiles/rahul.jpg"
-      },
-      "createdAt": "2025-06-12T14:00:00.000Z"
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "total": 3,
-    "pages": 1
-  }
-}
-```
-
-**Error Response (404 — No BMI Record):**
-
-```json
-{
-  "success": false,
-  "message": "No BMI record found. Please record your BMI first."
-}
-```
-
----
-
-## 6. Posts / Community
-
-Base path: `/api/posts`
-
-All post endpoints require authentication.
-
-### 6.1 Create Post
-
-```
-POST /api/posts
-```
-
-**Auth:** Bearer Token (any role)
-
-**Request Body:**
-
-| Field       | Type     | Required | Constraints                            | Description                    |
-|-------------|----------|----------|----------------------------------------|--------------------------------|
-| `content`   | string   | Yes      | min: 1                                  | Post text content              |
-| `mediaType` | string   | No       | One of: `text`, `image`, `video`         | Type of media (default: `text`) |
-| `mediaUrl`  | string   | No       |                                        | URL to media file              |
-| `hashtags`  | string[] | No       |                                        | Post hashtags                  |
-| `category`  | string   | No       |                                        | Post category                  |
-
-**Request Example:**
-
-```json
-{
-  "content": "Just completed a 5K run in 24 minutes! Consistency pays off. #running #fitness",
-  "mediaType": "image",
-  "mediaUrl": "https://cdn.reauxlabs.com/posts/run-5k-proof.jpg",
-  "hashtags": ["running", "fitness", "cardio"],
-  "category": "achievement"
-}
-```
-
-**Success Response (201 Created):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "66607f8e9a0b1c2d3e4f5062",
-    "author": "665b2a3f4d5c6e7f8a9b0d1e",
-    "content": "Just completed a 5K run in 24 minutes! Consistency pays off. #running #fitness",
-    "mediaType": "image",
-    "mediaUrl": "https://cdn.reauxlabs.com/posts/run-5k-proof.jpg",
-    "hashtags": ["running", "fitness", "cardio"],
-    "category": "achievement",
-    "likes": [],
-    "likesCount": 0,
-    "commentsCount": 0,
-    "createdAt": "2025-06-13T07:00:00.000Z",
-    "updatedAt": "2025-06-13T07:00:00.000Z"
-  }
-}
-```
-
----
-
-### 6.2 List Posts
-
-```
-GET /api/posts
-```
-
-**Auth:** Bearer Token (any role)
-
-**Query Parameters:**
-
-| Parameter  | Type   | Default | Description                            |
-|------------|--------|---------|----------------------------------------|
-| `page`     | number | 1       | Page number                            |
-| `limit`    | number | 10      | Results per page                       |
-| `category` | string |         | Filter by category                     |
-| `hashtag`  | string |         | Filter by hashtag                      |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "_id": "66607f8e9a0b1c2d3e4f5062",
-      "author": {
-        "_id": "665b2a3f4d5c6e7f8a9b0d1e",
-        "name": "Arjun Patel",
-        "avatar": "https://cdn.reauxlabs.com/avatars/arjun.jpg"
-      },
-      "content": "Just completed a 5K run in 24 minutes!",
-      "mediaType": "image",
-      "mediaUrl": "https://cdn.reauxlabs.com/posts/run-5k-proof.jpg",
-      "hashtags": ["running", "fitness", "cardio"],
-      "category": "achievement",
-      "likesCount": 12,
-      "commentsCount": 3,
-      "createdAt": "2025-06-13T07:00:00.000Z"
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "total": 89,
-    "pages": 9
-  }
-}
-```
-
----
-
-### 6.3 Get Post by ID
-
-```
-GET /api/posts/:id
-```
-
-**Auth:** Bearer Token (any role)
-
-**URL Parameters:**
-
-| Parameter | Type   | Description       |
-|-----------|--------|-------------------|
-| `id`      | string | Post's MongoDB ID |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "66607f8e9a0b1c2d3e4f5062",
-    "author": {
-      "_id": "665b2a3f4d5c6e7f8a9b0d1e",
-      "name": "Arjun Patel",
-      "avatar": "https://cdn.reauxlabs.com/avatars/arjun.jpg"
-    },
-    "content": "Just completed a 5K run in 24 minutes! Consistency pays off.",
-    "mediaType": "image",
-    "mediaUrl": "https://cdn.reauxlabs.com/posts/run-5k-proof.jpg",
-    "hashtags": ["running", "fitness", "cardio"],
-    "category": "achievement",
-    "likes": ["665b2a3f4d5c6e7f8a9b0d1e", "665c3b4a5e6d7f8a9b0c1d2f"],
-    "likesCount": 12,
-    "commentsCount": 3,
-    "createdAt": "2025-06-13T07:00:00.000Z",
-    "updatedAt": "2025-06-13T10:30:00.000Z"
-  }
-}
-```
-
----
-
-### 6.4 Like/Unlike Post
-
-```
-POST /api/posts/:id/like
-```
-
-**Auth:** Bearer Token (any role)
-
-Toggles the authenticated user's like on the post.
-
-**URL Parameters:**
-
-| Parameter | Type   | Description       |
-|-----------|--------|-------------------|
-| `id`      | string | Post's MongoDB ID |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Post liked"
-}
-```
-
-or
-
-```json
-{
-  "success": true,
-  "message": "Post unliked"
-}
-```
-
----
-
-### 6.5 Add Comment
-
-```
-POST /api/posts/:id/comment
-```
-
-**Auth:** Bearer Token (any role)
-
-**URL Parameters:**
-
-| Parameter | Type   | Description       |
-|-----------|--------|-------------------|
-| `id`      | string | Post's MongoDB ID |
-
-**Request Body:**
-
-| Field     | Type   | Required | Constraints | Description    |
-|-----------|--------|----------|-------------|----------------|
-| `content` | string | Yes      | min: 1       | Comment text   |
-
-**Request Example:**
-
-```json
-{
-  "content": "Great pace! Keep it up!"
-}
-```
-
-**Success Response (201 Created):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "66618a9fab1c2d3e4f506173",
-    "postId": "66607f8e9a0b1c2d3e4f5062",
-    "author": "665b2a3f4d5c6e7f8a9b0d1e",
-    "content": "Great pace! Keep it up!",
-    "createdAt": "2025-06-13T11:00:00.000Z",
-    "updatedAt": "2025-06-13T11:00:00.000Z"
-  }
-}
-```
-
----
-
-## 7. Reels
-
-Base path: `/api/reels`
-
-### 7.1 Create Reel
-
-```
-POST /api/reels
-```
-
-**Auth:** Bearer Token (any role)
-
-**Content-Type:** `multipart/form-data` (for file upload) or `application/json` (for URL)
-
-**Form Data (file upload):**
-
-| Field           | Type   | Required | Description                       |
-|-----------------|--------|----------|-----------------------------------|
-| `video`         | file   | Yes*     | Video file (mp4, mov, avi). Max 100MB. Uploaded to Cloudinary. |
-| `caption`       | string | No       | Reel caption                      |
-| `linkedProduct` | string | No       | Product ID to link to the reel    |
-
-**JSON Body (URL-based, no file upload):**
-
-| Field           | Type   | Required | Description                       |
-|-----------------|--------|----------|-----------------------------------|
-| `videoUrl`      | string | Yes*     | URL of an existing video          |
-| `caption`       | string | No       | Reel caption                      |
-| `linkedProduct` | string | No       | Product ID to link to the reel    |
-
-> *Either `video` file or `videoUrl` must be provided.
-
-**Request Example (file upload via curl):**
-
-```bash
-curl -X POST http://localhost:5001/api/reels \
-  -H "Authorization: Bearer <token>" \
-  -F "video=@workout.mp4" \
-  -F "caption=My deadlift PR!"
-```
-
-**Request Example (JSON with URL):**
-
-```json
-{
-  "videoUrl": "https://example.com/videos/workout.mp4",
-  "caption": "My deadlift PR!"
-}
-```
-
-**Success Response (201 Created):**
-
-```json
-{
-  "success": true,
-  "message": "Reel created",
-  "data": {
-    "_id": "698624a8a1a4e084ed96408e",
-    "author": "698622d81e80db14e947565b",
-    "videoUrl": "https://res.cloudinary.com/dfusrxsq6/video/upload/v1770398886/reaux-labs/reels/ub8wtfrzacnclwuokymo.mp4",
-    "caption": "My deadlift PR!",
-    "likes": [],
-    "likesCount": 0,
-    "createdAt": "2026-02-06T17:28:08.668Z",
-    "updatedAt": "2026-02-06T17:28:08.668Z"
-  }
-}
-```
-
----
-
-### 7.2 List Reels
-
-```
-GET /api/reels
-```
-
-**Auth:** None (public)
-
-**Query Parameters:**
-
-| Parameter | Type   | Default | Description     |
-|-----------|--------|---------|-----------------|
-| `page`    | number | 1       | Page number     |
-| `limit`   | number | 10      | Results per page |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "_id": "6661ab0ecd2e3f4a5b6c7d83",
-      "author": {
-        "_id": "665b2a3f4d5c6e7f8a9b0d1e",
-        "name": "Arjun Patel",
-        "avatar": "https://cdn.reauxlabs.com/avatars/arjun.jpg"
-      },
-      "videoUrl": "https://cdn.reauxlabs.com/reels/deadlift-form-guide.mp4",
-      "caption": "Proper deadlift form - avoid these common mistakes!",
-      "linkedProduct": {
-        "_id": "6662ab0ecd2e3f4a5b6c7d84",
-        "name": "REAUX Lifting Straps",
-        "price": 799
-      },
-      "likesCount": 45,
-      "createdAt": "2025-06-14T06:00:00.000Z"
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "total": 32,
-    "pages": 4
-  }
-}
-```
-
-> **Note:** The `likes` array is excluded from list responses to reduce payload size. Only `likesCount` is returned. Use the detail endpoint (7.3) to get full reel data.
-
----
-
-### 7.3 Get Reel by ID
-
-```
-GET /api/reels/:id
-```
-
-**Auth:** None (public)
-
-**URL Parameters:**
-
-| Parameter | Type   | Description       |
-|-----------|--------|-------------------|
-| `id`      | string | Reel's MongoDB ID |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "698624a8a1a4e084ed96408e",
-    "author": {
-      "_id": "698622d81e80db14e947565b",
-      "name": "Arjun Patel",
-      "avatar": "https://cdn.reauxlabs.com/avatars/arjun.jpg"
-    },
-    "videoUrl": "https://res.cloudinary.com/dfusrxsq6/video/upload/v1770398886/reaux-labs/reels/ub8wtfrzacnclwuokymo.mp4",
-    "caption": "Proper deadlift form - avoid these common mistakes!",
-    "linkedProduct": {
-      "_id": "6662ab0ecd2e3f4a5b6c7d84",
-      "name": "REAUX Lifting Straps",
-      "price": 799,
-      "images": ["https://cdn.reauxlabs.com/products/lifting-straps-1.jpg"]
-    },
-    "likes": ["665b2a3f4d5c6e7f8a9b0d1e"],
-    "likesCount": 1,
-    "createdAt": "2026-02-06T17:28:08.668Z",
-    "updatedAt": "2026-02-06T17:28:08.668Z"
-  }
-}
-```
-
-**Error Response (404 Not Found):**
-
-```json
-{
-  "success": false,
-  "message": "Reel not found"
-}
-```
-
----
-
-### 7.4 Like/Unlike Reel
-
-```
-POST /api/reels/:id/like
-```
-
-**Auth:** Bearer Token (any role)
-
-Toggles the authenticated user's like on the reel.
-
-**URL Parameters:**
-
-| Parameter | Type   | Description       |
-|-----------|--------|-------------------|
-| `id`      | string | Reel's MongoDB ID |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Reel liked"
-}
-```
-
-or
-
-```json
-{
-  "success": true,
-  "message": "Reel unliked"
-}
-```
-
----
-
-## 8. Products
-
-Base path: `/api/products`
-
-### 8.1 List Products
-
-```
-GET /api/products
-```
-
-**Auth:** None (public)
-
-**Query Parameters:**
-
-| Parameter  | Type   | Default | Description                          |
-|------------|--------|---------|--------------------------------------|
-| `page`     | number | 1       | Page number                          |
-| `limit`    | number | 10      | Results per page                     |
-| `category` | string |         | Filter by category                   |
-| `search`   | string |         | Text search on name and description  |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "_id": "6662ab0ecd2e3f4a5b6c7d84",
-      "name": "REAUX Lifting Straps",
-      "description": "Premium cotton lifting straps for heavy pulls. Anti-slip grip with reinforced stitching.",
-      "price": 799,
-      "compareAtPrice": 1199,
-      "images": [
-        "https://cdn.reauxlabs.com/products/lifting-straps-1.jpg",
-        "https://cdn.reauxlabs.com/products/lifting-straps-2.jpg"
-      ],
-      "category": "accessories",
-      "stock": 150,
-      "isActive": true,
-      "createdAt": "2025-06-10T09:00:00.000Z"
-    },
-    {
-      "_id": "6662bc1fde3f4a5b6c7d8e95",
-      "name": "REAUX Whey Protein - Chocolate",
-      "description": "25g protein per scoop. Low carb, zero sugar. 2kg tub.",
-      "price": 2499,
-      "compareAtPrice": 3499,
-      "images": [
-        "https://cdn.reauxlabs.com/products/whey-chocolate-1.jpg"
-      ],
-      "category": "supplements",
-      "stock": 80,
-      "isActive": true,
-      "createdAt": "2025-06-08T11:00:00.000Z"
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "total": 24,
-    "pages": 3
-  }
-}
-```
-
----
-
-### 8.2 Get Product by ID
-
-```
-GET /api/products/:id
-```
-
-**Auth:** None (public)
-
-**URL Parameters:**
-
-| Parameter | Type   | Description          |
-|-----------|--------|----------------------|
-| `id`      | string | Product's MongoDB ID |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "6662ab0ecd2e3f4a5b6c7d84",
-    "name": "REAUX Lifting Straps",
-    "description": "Premium cotton lifting straps for heavy pulls. Anti-slip grip with reinforced stitching.",
-    "price": 799,
-    "compareAtPrice": 1199,
-    "images": [
-      "https://cdn.reauxlabs.com/products/lifting-straps-1.jpg",
-      "https://cdn.reauxlabs.com/products/lifting-straps-2.jpg"
-    ],
-    "category": "accessories",
-    "stock": 150,
-    "isActive": true,
-    "createdBy": "665d4c5b6e7f8a9b0c1d2e3f",
-    "createdAt": "2025-06-10T09:00:00.000Z",
-    "updatedAt": "2025-06-10T09:00:00.000Z"
-  }
-}
-```
-
----
-
-### 8.3 Create Product
-
-```
-POST /api/products
-```
-
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
-
-**Request Body:**
-
-| Field            | Type     | Required | Constraints      | Description                              |
-|------------------|----------|----------|------------------|------------------------------------------|
-| `name`           | string   | Yes      | min: 1            | Product name                             |
-| `price`          | number   | Yes      | Must be positive   | Selling price (in smallest currency unit or INR) |
-| `description`    | string   | No       |                  | Product description                      |
-| `compareAtPrice` | number   | No       | Must be positive   | Original/strikethrough price             |
-| `images`         | string[] | No       |                  | Array of image URLs                      |
-| `category`       | string   | No       |                  | Product category                         |
-| `stock`          | number   | No       | Integer, min: 0    | Available stock (default: 0)             |
-
-**Request Example:**
-
-```json
-{
-  "name": "REAUX Resistance Band Set",
-  "price": 1299,
-  "compareAtPrice": 1899,
-  "description": "Set of 5 resistance bands (light to heavy). Latex-free, portable, and durable.",
-  "images": ["https://cdn.reauxlabs.com/products/bands-1.jpg"],
-  "category": "equipment",
-  "stock": 200
-}
-```
-
-**Success Response (201 Created):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "6663cd20ef4a5b6c7d8e9fa6",
-    "name": "REAUX Resistance Band Set",
-    "description": "Set of 5 resistance bands (light to heavy). Latex-free, portable, and durable.",
-    "price": 1299,
-    "compareAtPrice": 1899,
-    "images": ["https://cdn.reauxlabs.com/products/bands-1.jpg"],
-    "category": "equipment",
-    "stock": 200,
-    "isActive": true,
-    "createdBy": "665d4c5b6e7f8a9b0c1d2e3f",
-    "createdAt": "2025-06-14T10:00:00.000Z",
-    "updatedAt": "2025-06-14T10:00:00.000Z"
-  }
-}
-```
-
----
-
-### 8.4 Update Product
-
-```
-PUT /api/products/:id
-```
-
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
-
-**URL Parameters:**
-
-| Parameter | Type   | Description          |
-|-----------|--------|----------------------|
-| `id`      | string | Product's MongoDB ID |
-
-**Request Body:** Same fields as create, all optional. Additionally:
-
-| Field      | Type    | Required | Description                      |
-|------------|---------|----------|----------------------------------|
-| `isActive` | boolean | No       | Set to `false` to deactivate     |
-
-**Request Example:**
-
-```json
-{
-  "price": 999,
-  "stock": 175
-}
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "6663cd20ef4a5b6c7d8e9fa6",
-    "name": "REAUX Resistance Band Set",
-    "price": 999,
-    "stock": 175,
-    "isActive": true,
-    "updatedAt": "2025-06-15T08:00:00.000Z"
-  }
-}
-```
-
----
-
-## 9. Cart
-
-Base path: `/api/cart`
-
-All cart endpoints require authentication. Each user has a single cart document.
-
-### 9.1 Add to Cart
-
-```
-POST /api/cart/add
-```
-
-**Auth:** Bearer Token (any role)
-
-**Request Body:**
-
-| Field       | Type   | Required | Constraints                  | Description                    |
-|-------------|--------|----------|------------------------------|--------------------------------|
-| `productId` | string | Yes      | min: 1, valid MongoDB ObjectId | ID of the product to add       |
-| `quantity`  | number | No       | Positive integer (default: 1) | Quantity to add                |
-
-**Request Example:**
-
-```json
-{
-  "productId": "6662ab0ecd2e3f4a5b6c7d84",
-  "quantity": 2
-}
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "6664de31fa5b6c7d8e9f0ab7",
-    "userId": "665b2a3f4d5c6e7f8a9b0d1e",
-    "items": [
-      {
-        "product": "6662ab0ecd2e3f4a5b6c7d84",
-        "quantity": 2
-      }
-    ],
-    "createdAt": "2025-06-15T10:00:00.000Z",
-    "updatedAt": "2025-06-15T10:00:00.000Z"
-  }
-}
-```
-
----
-
-### 9.2 View Cart
-
-```
-GET /api/cart
-```
-
-**Auth:** Bearer Token (any role)
-
-Returns the authenticated user's cart with populated product details.
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "6664de31fa5b6c7d8e9f0ab7",
-    "userId": "665b2a3f4d5c6e7f8a9b0d1e",
-    "items": [
-      {
-        "product": {
-          "_id": "6662ab0ecd2e3f4a5b6c7d84",
-          "name": "REAUX Lifting Straps",
-          "price": 799,
-          "images": ["https://cdn.reauxlabs.com/products/lifting-straps-1.jpg"]
-        },
-        "quantity": 2
-      },
-      {
-        "product": {
-          "_id": "6662bc1fde3f4a5b6c7d8e95",
-          "name": "REAUX Whey Protein - Chocolate",
-          "price": 2499,
-          "images": ["https://cdn.reauxlabs.com/products/whey-chocolate-1.jpg"]
-        },
-        "quantity": 1
-      }
-    ],
-    "createdAt": "2025-06-15T10:00:00.000Z",
-    "updatedAt": "2025-06-15T10:30:00.000Z"
-  }
-}
-```
-
----
-
-### 9.3 Remove from Cart
-
-```
-DELETE /api/cart/item/:productId
-```
-
-**Auth:** Bearer Token (any role)
-
-**URL Parameters:**
-
-| Parameter   | Type   | Description          |
-|-------------|--------|----------------------|
-| `productId` | string | Product's MongoDB ID |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "6664de31fa5b6c7d8e9f0ab7",
-    "userId": "665b2a3f4d5c6e7f8a9b0d1e",
-    "items": [
-      {
-        "product": "6662bc1fde3f4a5b6c7d8e95",
-        "quantity": 1
-      }
-    ],
-    "updatedAt": "2025-06-15T11:00:00.000Z"
-  }
-}
-```
-
----
-
-## 10. Orders
-
-Base path: `/api/orders`
-
-All order endpoints require authentication.
-
-### 10.1 Create Order
-
-```
-POST /api/orders/create
-```
-
-**Auth:** Bearer Token (any role)
-
-Creates an order from the items currently in the user's cart. The cart is emptied upon successful order creation. An order confirmation email is sent to the user automatically.
-
-**Request Body:**
-
-| Field                        | Type   | Required | Constraints | Description              |
-|------------------------------|--------|----------|-------------|--------------------------|
-| `shippingAddress`            | object | Yes      |             | Shipping address object  |
-| `shippingAddress.street`     | string | Yes      | min: 1       | Street address           |
-| `shippingAddress.city`       | string | Yes      | min: 1       | City                     |
-| `shippingAddress.state`      | string | Yes      | min: 1       | State                    |
-| `shippingAddress.pincode`    | string | Yes      | min: 1       | PIN code                 |
-| `shippingAddress.phone`      | string | Yes      | min: 1       | Contact phone            |
-| `promoCode`                  | string | No       |             | Promo code to apply      |
-
-**Request Example:**
-
-```json
-{
-  "shippingAddress": {
-    "street": "15 Brigade Road, Ashok Nagar",
-    "city": "Bangalore",
-    "state": "Karnataka",
-    "pincode": "560025",
-    "phone": "+91-9876543210"
-  },
-  "promoCode": "FIT20"
-}
-```
-
-**Success Response (201 Created):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "6665ef42ab6c7d8e9f0a1bc8",
-    "userId": "665b2a3f4d5c6e7f8a9b0d1e",
-    "items": [
-      {
-        "product": "6662ab0ecd2e3f4a5b6c7d84",
-        "name": "REAUX Lifting Straps",
-        "price": 799,
-        "quantity": 2
-      },
-      {
-        "product": "6662bc1fde3f4a5b6c7d8e95",
-        "name": "REAUX Whey Protein - Chocolate",
-        "price": 2499,
-        "quantity": 1
-      }
-    ],
-    "totalAmount": 4097,
-    "discount": 819.4,
-    "finalAmount": 3277.6,
-    "promoCode": "FIT20",
-    "status": "pending",
-    "shippingAddress": {
-      "street": "15 Brigade Road, Ashok Nagar",
-      "city": "Bangalore",
-      "state": "Karnataka",
-      "pincode": "560025",
-      "phone": "+91-9876543210"
-    },
-    "createdAt": "2025-06-15T14:00:00.000Z",
-    "updatedAt": "2025-06-15T14:00:00.000Z"
-  }
-}
-```
-
-**Error Responses:**
-
-*400 Bad Request -- Empty cart:*
-
-```json
-{
-  "success": false,
-  "message": "Cart is empty"
-}
-```
-
-*400 Bad Request -- Invalid promo code:*
-
-```json
-{
-  "success": false,
-  "message": "Invalid promo code"
-}
-```
-
-*400 Bad Request -- Promo code expired:*
-
-```json
-{
-  "success": false,
-  "message": "Promo code has expired"
-}
-```
-
-*400 Bad Request -- Minimum order amount not met:*
-
-```json
-{
-  "success": false,
-  "message": "Minimum order amount of 500 not met"
-}
-```
-
----
-
-### 10.2 Get My Orders
-
-```
-GET /api/orders/my
-```
-
-**Auth:** Bearer Token (any role)
-
-Returns the authenticated user's orders in reverse chronological order.
-
-**Query Parameters:**
-
-| Parameter | Type   | Default | Description     |
-|-----------|--------|---------|-----------------|
-| `page`    | number | 1       | Page number     |
-| `limit`   | number | 10      | Results per page |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "_id": "6665ef42ab6c7d8e9f0a1bc8",
-      "userId": "665b2a3f4d5c6e7f8a9b0d1e",
-      "items": [
-        {
-          "product": "6662ab0ecd2e3f4a5b6c7d84",
-          "name": "REAUX Lifting Straps",
-          "price": 799,
-          "quantity": 2
-        },
-        {
-          "product": "6662bc1fde3f4a5b6c7d8e95",
-          "name": "REAUX Whey Protein - Chocolate",
-          "price": 2499,
-          "quantity": 1
-        }
-      ],
-      "totalAmount": 4097,
-      "discount": 819.4,
-      "finalAmount": 3277.6,
-      "promoCode": "FIT20",
-      "status": "pending",
-      "shippingAddress": {
-        "street": "15 Brigade Road, Ashok Nagar",
-        "city": "Bangalore",
-        "state": "Karnataka",
-        "pincode": "560025",
-        "phone": "+91-9876543210"
-      },
-      "createdAt": "2025-06-15T14:00:00.000Z"
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "total": 3,
-    "pages": 1
-  }
-}
-```
-
----
-
-### 10.3 Get Order by ID
-
-```
-GET /api/orders/:id
-```
-
-**Auth:** Bearer Token (any role)
-
-Returns a specific order. Users can only view their own orders.
-
-**URL Parameters:**
-
-| Parameter | Type   | Description        |
-|-----------|--------|--------------------|
-| `id`      | string | Order's MongoDB ID |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "6665ef42ab6c7d8e9f0a1bc8",
-    "userId": "665b2a3f4d5c6e7f8a9b0d1e",
-    "items": [
-      {
-        "product": "6662ab0ecd2e3f4a5b6c7d84",
-        "name": "REAUX Lifting Straps",
-        "price": 799,
-        "quantity": 2
-      }
-    ],
-    "totalAmount": 1598,
-    "discount": 0,
-    "finalAmount": 1598,
-    "status": "confirmed",
-    "shippingAddress": {
-      "street": "15 Brigade Road, Ashok Nagar",
-      "city": "Bangalore",
-      "state": "Karnataka",
-      "pincode": "560025",
-      "phone": "+91-9876543210"
-    },
-    "createdAt": "2025-06-15T14:00:00.000Z",
-    "updatedAt": "2025-06-16T09:00:00.000Z"
-  }
-}
-```
-
-**Error Responses:**
-
-*404 Not Found:*
-
-```json
-{
-  "success": false,
-  "message": "Order not found"
-}
-```
-
-*403 Forbidden -- Not order owner:*
-
-```json
-{
-  "success": false,
-  "message": "Unauthorized to view this order"
-}
-```
-
----
-
-### 10.4 Update Order Status (Admin)
-
-```
-PATCH /api/orders/:id/status
-```
-
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
-
-Updates the status of an order. Follows a state machine — only valid transitions are allowed. A notification is automatically created for the user on each status change.
-
-**Valid Transitions:**
-
-| From        | Allowed To                    |
-|-------------|-------------------------------|
-| `pending`   | `confirmed`, `cancelled`      |
-| `confirmed` | `shipped`, `cancelled`        |
-| `shipped`   | `delivered`, `cancelled`      |
-| `delivered` | *(none)*                      |
-| `cancelled` | *(none)*                      |
-
-**URL Parameters:**
-
-| Parameter | Type   | Description        |
-|-----------|--------|--------------------|
-| `id`      | string | Order's MongoDB ID |
-
-**Request Body:**
-
-| Field    | Type   | Required | Constraints                                       | Description |
-|----------|--------|----------|---------------------------------------------------|-------------|
-| `status` | string | Yes      | One of: `confirmed`, `shipped`, `delivered`, `cancelled` | New status  |
-
-**Request Example:**
-
-```json
-{
-  "status": "confirmed"
-}
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Order status updated",
-  "data": {
-    "_id": "6665ef42ab6c7d8e9f0a1bc8",
-    "userId": "665b2a3f4d5c6e7f8a9b0d1e",
-    "status": "confirmed",
-    "items": [ ... ],
-    "totalAmount": 4097,
-    "discount": 819.4,
-    "finalAmount": 3277.6,
-    "createdAt": "2025-06-15T14:00:00.000Z",
-    "updatedAt": "2025-06-16T09:00:00.000Z"
-  }
-}
-```
-
-**Error Responses:**
-
-*400 Bad Request -- Invalid transition:*
-
-```json
-{
-  "success": false,
-  "message": "Cannot transition from 'delivered' to 'shipped'"
-}
-```
-
-*404 Not Found:*
-
-```json
-{
-  "success": false,
-  "message": "Order not found"
-}
-```
-
----
-
-## 11. Promo Codes
-
-Base path: `/api/promo`
-
-### 11.1 Create Promo Code
-
-```
-POST /api/promo/create
-```
-
-**Auth:** Bearer Token
-**Role:** `superadmin` only
-
-**Request Body:**
-
-| Field            | Type   | Required | Constraints                        | Description                              |
-|------------------|--------|----------|------------------------------------|------------------------------------------|
-| `code`           | string | Yes      | min: 1                              | Promo code (auto-uppercased)             |
-| `discountType`   | string | Yes      | One of: `percentage`, `fixed`        | Type of discount                         |
-| `discountValue`  | number | Yes      | Must be positive                     | Discount amount (% or fixed value)       |
-| `minOrderAmount` | number | No       | min: 0 (default: 0)                 | Minimum order total to apply promo       |
-| `maxDiscount`    | number | No       | Must be positive                     | Maximum discount cap (for percentage)    |
-| `usageLimit`     | number | No       | Positive integer                     | Maximum total uses allowed               |
-| `validFrom`      | string | No       | Date string (ISO 8601)               | Start date of validity                   |
-| `validUntil`     | string | No       | Date string (ISO 8601)               | Expiry date                              |
-
-**Request Example:**
-
-```json
-{
-  "code": "FIT20",
-  "discountType": "percentage",
-  "discountValue": 20,
-  "minOrderAmount": 500,
-  "maxDiscount": 1000,
-  "usageLimit": 500,
-  "validFrom": "2025-06-01T00:00:00.000Z",
-  "validUntil": "2025-12-31T23:59:59.000Z"
-}
-```
-
-**Success Response (201 Created):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "6666fa53bc7d8e9f0a1b2cd9",
-    "code": "FIT20",
-    "discountType": "percentage",
-    "discountValue": 20,
-    "minOrderAmount": 500,
-    "maxDiscount": 1000,
-    "usageLimit": 500,
-    "usedCount": 0,
-    "validFrom": "2025-06-01T00:00:00.000Z",
-    "validUntil": "2025-12-31T23:59:59.000Z",
-    "isActive": true,
-    "createdBy": "665d4c5b6e7f8a9b0c1d2e3f",
-    "createdAt": "2025-06-15T16:00:00.000Z",
-    "updatedAt": "2025-06-15T16:00:00.000Z"
-  }
-}
-```
-
-**Error Responses:**
-
-*409 Conflict -- Duplicate promo code:*
-
-```json
-{
-  "success": false,
-  "message": "Duplicate value for field: code"
-}
-```
-
----
-
-### 11.2 Validate Promo Code
-
-```
-POST /api/promo/validate
-```
-
-**Auth:** Bearer Token (any role)
-
-Validates whether a promo code is active and applicable.
-
-**Request Body:**
-
-| Field  | Type   | Required | Constraints | Description      |
-|--------|--------|----------|-------------|------------------|
-| `code` | string | Yes      | min: 1       | Promo code       |
-
-**Request Example:**
-
-```json
-{
-  "code": "FIT20"
-}
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "code": "FIT20",
-    "discountType": "percentage",
-    "discountValue": 20,
-    "discount": 0
-  }
-}
-```
-
-> Note: The `discount` field reflects the computed discount based on the current order amount. When validating without an order context, it may be `0`.
-
-**Error Responses:**
-
-*404 Not Found -- Invalid or inactive code:*
-
-```json
-{
-  "success": false,
-  "message": "Invalid or inactive promo code"
-}
-```
-
-*400 Bad Request -- Expired:*
-
-```json
-{
-  "success": false,
-  "message": "Promo code has expired"
-}
-```
-
-*400 Bad Request -- Usage limit reached:*
-
-```json
-{
-  "success": false,
-  "message": "Promo code usage limit reached"
-}
 ```
-
----
-
-## 12. Challenges
-
-Base path: `/api/challenges`
-
-### 12.1 Create Challenge
-
-```
-POST /api/challenges
-```
-
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
-
-**Request Body:**
-
-| Field         | Type   | Required | Constraints                                    | Description                  |
-|---------------|--------|----------|------------------------------------------------|------------------------------|
-| `title`       | string | Yes      | min: 1, max: 200                                | Challenge title              |
-| `type`        | string | Yes      | One of: `steps`, `workout`, `diet`, `custom`     | Type of challenge            |
-| `target`      | number | Yes      | Must be positive                                 | Target number (e.g., steps)  |
-| `startDate`   | string | Yes      | min: 1, date string                              | Challenge start date         |
-| `endDate`     | string | Yes      | min: 1, date string                              | Challenge end date           |
-| `description` | string | No       |                                                | Challenge description        |
-
-**Request Example:**
-
-```json
-{
-  "title": "30-Day Push-Up Challenge",
-  "type": "workout",
-  "target": 3000,
-  "startDate": "2025-07-01",
-  "endDate": "2025-07-31",
-  "description": "Complete 3000 push-ups in 30 days. Track your daily reps!"
-}
-```
-
-**Success Response (201 Created):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "66670b64cd8e9f0a1b2c3dea",
-    "title": "30-Day Push-Up Challenge",
-    "description": "Complete 3000 push-ups in 30 days. Track your daily reps!",
-    "type": "workout",
-    "target": 3000,
-    "startDate": "2025-07-01T00:00:00.000Z",
-    "endDate": "2025-07-31T00:00:00.000Z",
-    "participants": [],
-    "createdBy": "665d4c5b6e7f8a9b0c1d2e3f",
-    "isActive": true,
-    "createdAt": "2025-06-16T08:00:00.000Z",
-    "updatedAt": "2025-06-16T08:00:00.000Z"
-  }
-}
-```
-
----
-
-### 12.2 List Challenges
-
-```
-GET /api/challenges
-```
-
-**Auth:** Bearer Token (any role)
-
-**Query Parameters:**
-
-| Parameter | Type   | Default | Description     |
-|-----------|--------|---------|-----------------|
-| `page`    | number | 1       | Page number     |
-| `limit`   | number | 10      | Results per page |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "_id": "66670b64cd8e9f0a1b2c3dea",
-      "title": "30-Day Push-Up Challenge",
-      "description": "Complete 3000 push-ups in 30 days.",
-      "type": "workout",
-      "target": 3000,
-      "startDate": "2025-07-01T00:00:00.000Z",
-      "endDate": "2025-07-31T00:00:00.000Z",
-      "participants": [
-        {
-          "userId": "665b2a3f4d5c6e7f8a9b0d1e",
-          "progress": 450,
-          "joinedAt": "2025-07-01T06:30:00.000Z"
-        }
-      ],
-      "isActive": true,
-      "createdBy": "665d4c5b6e7f8a9b0c1d2e3f",
-      "createdAt": "2025-06-16T08:00:00.000Z"
-    },
-    {
-      "_id": "66681c75de9f0a1b2c3d4efb",
-      "title": "10K Steps Daily Challenge",
-      "description": "Walk at least 10,000 steps every day for 2 weeks.",
-      "type": "steps",
-      "target": 140000,
-      "startDate": "2025-07-15T00:00:00.000Z",
-      "endDate": "2025-07-29T00:00:00.000Z",
-      "participants": [],
-      "isActive": true,
-      "createdAt": "2025-06-18T10:00:00.000Z"
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "total": 5,
-    "pages": 1
-  }
-}
-```
-
----
-
-### 12.3 Join Challenge
-
-```
-POST /api/challenges/:id/join
-```
-
-**Auth:** Bearer Token (any role)
-
-Adds the authenticated user as a participant in the challenge with an initial progress of `0`.
-
-**URL Parameters:**
-
-| Parameter | Type   | Description            |
-|-----------|--------|------------------------|
-| `id`      | string | Challenge's MongoDB ID |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Joined challenge successfully",
-  "data": {
-    "_id": "66670b64cd8e9f0a1b2c3dea",
-    "title": "30-Day Push-Up Challenge",
-    "participants": [
-      {
-        "userId": "665b2a3f4d5c6e7f8a9b0d1e",
-        "progress": 0,
-        "joinedAt": "2025-07-01T06:30:00.000Z"
-      }
-    ]
-  }
-}
-```
-
-**Error Responses:**
-
-*404 Not Found:*
-
-```json
-{
-  "success": false,
-  "message": "Challenge not found"
-}
-```
-
----
-
-## 13. Notifications
-
-Base path: `/api/notifications`
-
-All notification endpoints require authentication.
-
-### 13.1 Get Notifications
-
-```
-GET /api/notifications
-```
-
-**Auth:** Bearer Token (any role)
-
-Returns notifications for the authenticated user, sorted by newest first.
-
-**Query Parameters:**
-
-| Parameter | Type   | Default | Description     |
-|-----------|--------|---------|-----------------|
-| `page`    | number | 1       | Page number     |
-| `limit`   | number | 10      | Results per page |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "_id": "66692d86ef0a1b2c3d4e5f0c",
-      "userId": "665b2a3f4d5c6e7f8a9b0d1e",
-      "title": "Order Confirmed",
-      "message": "Your order #6665ef42ab6c7d8e9f0a1bc8 has been confirmed and is being prepared for shipping.",
-      "type": "order",
-      "isRead": false,
-      "metadata": {
-        "orderId": "6665ef42ab6c7d8e9f0a1bc8"
-      },
-      "createdAt": "2025-06-16T09:00:00.000Z"
-    },
-    {
-      "_id": "66693e97fa1b2c3d4e5f601d",
-      "userId": "665b2a3f4d5c6e7f8a9b0d1e",
-      "title": "New Challenge Available",
-      "message": "30-Day Push-Up Challenge starts on July 1st. Join now!",
-      "type": "challenge",
-      "isRead": true,
-      "metadata": {
-        "challengeId": "66670b64cd8e9f0a1b2c3dea"
-      },
-      "createdAt": "2025-06-16T08:30:00.000Z"
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "total": 12,
-    "pages": 2
-  }
-}
-```
-
----
-
-### 13.2 Mark Notification as Read
-
-```
-PUT /api/notifications/read/:id
-```
-
-**Auth:** Bearer Token (any role)
-
-**URL Parameters:**
-
-| Parameter | Type   | Description                |
-|-----------|--------|----------------------------|
-| `id`      | string | Notification's MongoDB ID  |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "_id": "66692d86ef0a1b2c3d4e5f0c",
-    "userId": "665b2a3f4d5c6e7f8a9b0d1e",
-    "title": "Order Confirmed",
-    "message": "Your order #6665ef42ab6c7d8e9f0a1bc8 has been confirmed.",
-    "type": "order",
-    "isRead": true,
-    "createdAt": "2025-06-16T09:00:00.000Z",
-    "updatedAt": "2025-06-16T12:00:00.000Z"
-  }
-}
-```
-
----
-
-### 13.3 Mark All Notifications as Read
-
-```
-PATCH /api/notifications/mark-all-read
-```
-
-**Auth:** Bearer Token (any role)
-
-Marks all unread notifications for the authenticated user as read in a single operation.
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "All notifications marked as read"
-}
-```
-
----
-
-### 13.4 Register FCM Device Token
-
-```
-POST /api/notifications/fcm-token
-```
-
-**Auth:** Bearer Token (any role)
-
-Registers a Firebase Cloud Messaging token for push notifications. Supports multiple devices per user (uses `$addToSet` to prevent duplicates).
-
-**Request Body:**
-
-```json
-{
-  "token": "fcm-device-token-string"
-}
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "FCM token registered"
-}
-```
-
----
-
-### 13.5 Remove FCM Device Token
-
-```
-DELETE /api/notifications/fcm-token
+GET /api/users/birthdays/today
 ```
-
-**Auth:** Bearer Token (any role)
-
-Removes an FCM device token (call on logout).
-
-**Request Body:**
-
-```json
-{
-  "token": "fcm-device-token-string"
-}
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "FCM token removed"
-}
-```
-
----
-
-## 14. Memberships
-
-Base path: `/api/memberships`
-
-The membership system has two layers: **Membership Plans** (templates created by SuperAdmin) and **User Memberships** (subscriptions assigned by Admins). Plans are gym-specific.
-
-### 14.1 Create Membership Plan
-
-```
-POST /api/memberships/plans
-```
-
-**Auth:** Bearer Token
-**Role:** `superadmin`
-
-**Request Body:**
-
-```json
-{
-  "name": "Premium Quarterly",
-  "gymId": "665f1a2b3c4d5e6f7a8b9c0d",
-  "durationDays": 90,
-  "price": 3999,
-  "features": ["Gym Floor Access", "Pool", "Personal Trainer (2 sessions)"],
-  "description": "Full access to all amenities for 3 months."
-}
-```
-
-| Field          | Type     | Required | Description                          |
-|----------------|----------|----------|--------------------------------------|
-| `name`         | string   | Yes      | Plan name                            |
-| `gymId`        | string   | Yes      | Gym this plan belongs to             |
-| `durationDays` | number   | Yes      | Duration in days (30, 90, 180, 365)  |
-| `price`        | number   | Yes      | Price in INR                         |
-| `features`     | string[] | No       | List of included features            |
-| `description`  | string   | No       | Plan description                     |
-
-**Success Response (201 Created):**
-
-```json
-{
-  "success": true,
-  "message": "Membership plan created",
-  "data": {
-    "_id": "...",
-    "name": "Premium Quarterly",
-    "gymId": "665f1a2b3c4d5e6f7a8b9c0d",
-    "durationDays": 90,
-    "price": 3999,
-    "features": ["Gym Floor Access", "Pool", "Personal Trainer (2 sessions)"],
-    "description": "Full access to all amenities for 3 months.",
-    "isActive": true,
-    "createdBy": "...",
-    "createdAt": "...",
-    "updatedAt": "..."
-  }
-}
-```
-
----
-
-### 14.2 List Membership Plans
-
-```
-GET /api/memberships/plans
-```
-
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
-
-Admins see only plans for their gym. SuperAdmin sees all plans (optionally filter by `gymId`).
-
-**Query Parameters:**
-
-| Parameter | Type   | Default | Description                     |
-|-----------|--------|---------|---------------------------------|
-| `gymId`   | string | —       | Filter by gym (superadmin only) |
-| `page`    | number | 1       | Page number                     |
-| `limit`   | number | 10      | Results per page (max 100)      |
+**Auth:** Required (admin, superadmin)
 
-**Success Response (200 OK):**
+Admin sees only their gym's users.
 
+**Response (200):**
 ```json
 {
   "success": true,
   "data": [
     {
       "_id": "...",
-      "name": "Basic Monthly",
-      "gymId": { "_id": "...", "name": "REAUX Fitness Delhi", "slug": "reaux-fitness-delhi" },
-      "durationDays": 30,
-      "price": 1500,
-      "features": ["Gym Floor Access", "Locker Room"],
-      "description": "Basic gym access for 30 days.",
-      "isActive": true
+      "name": "Riya Kapoor",
+      "email": "riya@gmail.com",
+      "avatar": "...",
+      "dateOfBirth": "2001-04-18T00:00:00.000Z",
+      "gymId": { "_id": "...", "name": "REAUX Fitness — Delhi", "slug": "..." }
     }
-  ],
-  "pagination": { "page": 1, "limit": 10, "total": 3, "pages": 1 }
+  ]
 }
 ```
 
 ---
 
-### 14.3 Get Membership Plan by ID
+### 2.8 Upcoming Birthdays
+
+```
+GET /api/users/birthdays/upcoming?days=7
+```
+**Auth:** Required (admin, superadmin)
+
+| Query | Default | Notes |
+|-------|---------|-------|
+| `days` | 7 | Look-ahead window |
+
+**Response (200):** Same as today but with `daysUntil` field. Sorted soonest first.
+```json
+{
+  "success": true,
+  "data": [
+    { "name": "Riya Kapoor", "daysUntil": 3, "dateOfBirth": "2001-04-18T00:00:00.000Z", ... }
+  ]
+}
+```
+
+---
+
+## 3. Saved Addresses
+
+Base path: `/api/users/addresses`
+
+All endpoints require authentication. Operates on the logged-in user's addresses.
+
+### 3.1 Get Addresses
+
+```
+GET /api/users/addresses
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "...",
+      "label": "Home",
+      "street": "10 Sector 18, Dwarka",
+      "city": "Delhi",
+      "state": "Delhi",
+      "pincode": "110075",
+      "phone": "9876543213",
+      "isDefault": true
+    }
+  ]
+}
+```
+
+---
+
+### 3.2 Add Address
+
+```
+POST /api/users/addresses
+```
+
+**Body:**
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `label` | string | No | e.g. "Home", "Work" |
+| `street` | string | Yes | |
+| `city` | string | Yes | |
+| `state` | string | Yes | |
+| `pincode` | string | Yes | Exactly 6 digits |
+| `phone` | string | No | 10 digits |
+| `isDefault` | boolean | No | If true, all others become non-default |
+
+First address is automatically set as default.
+
+**Response (200):** Returns full `savedAddresses` array.
+
+---
+
+### 3.3 Update Address
+
+```
+PUT /api/users/addresses/:addressId
+```
+
+**Body:** Any address fields (partial update).
+
+**Response (200):** Returns full `savedAddresses` array.
+
+---
+
+### 3.4 Delete Address
+
+```
+DELETE /api/users/addresses/:addressId
+```
+
+If deleted address was default, the first remaining address becomes default.
+
+**Response (200):** Returns remaining `savedAddresses` array.
+
+---
+
+## 4. Gyms
+
+Base path: `/api/gyms`
+
+### 4.1 Create Gym
+
+```
+POST /api/gyms
+```
+**Auth:** Required (superadmin)
+**Content-Type:** `multipart/form-data`
+
+**Body:**
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `name` | string | Yes | |
+| `description` | string | No | |
+| `address` | string | Yes | |
+| `phone` | string | No | |
+| `email` | string | No | |
+| `amenities` | array | No | |
+| `openingHours` | string | No | |
+| `images` | files | No | jpeg/png/webp, 5MB each |
+| `logo` | file | No | jpeg/png/webp, 5MB |
+
+---
+
+### 4.2 List Gyms
+
+```
+GET /api/gyms?page=1&limit=10
+```
+**Auth:** None (public)
+
+---
+
+### 4.3 Get Gym by ID
+
+```
+GET /api/gyms/:id
+```
+**Auth:** None (public)
+
+---
+
+### 4.4 Update Gym
+
+```
+PUT /api/gyms/:id
+```
+**Auth:** Required (superadmin)
+
+---
+
+### 4.5 Delete Gym
+
+```
+DELETE /api/gyms/:id
+```
+**Auth:** Required (superadmin)
+
+---
+
+### 4.6 Assign Admin to Gym
+
+```
+POST /api/gyms/:id/assign-admin
+```
+**Auth:** Required (superadmin)
+
+**Body:** `{ "userId": "..." }`
+
+---
+
+## 5. BMI
+
+Base path: `/api/bmi`
+
+### 5.1 Record BMI
+
+```
+POST /api/bmi/record
+```
+**Auth:** Required
+
+**Body:**
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `height` | number | Yes | In cm |
+| `weight` | number | Yes | In kg |
+| `age` | number | No | Auto-fetched from dateOfBirth if not provided |
+| `gender` | string | No | Auto-fetched from profile if not provided |
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "message": "BMI recorded successfully",
+  "data": {
+    "_id": "...",
+    "userId": "...",
+    "height": 178,
+    "weight": 75,
+    "age": 27,
+    "gender": "male",
+    "bmi": 23.67,
+    "bmr": 1732.5,
+    "category": "normal",
+    "message": "Your BMI is 23.7 — you're in great shape! ...",
+    "createdAt": "2026-03-24T15:10:01.961Z"
+  }
+}
+```
+
+---
+
+### 5.2 BMI History
+
+```
+GET /api/bmi/history?page=1&limit=10
+```
+**Auth:** Required
+
+**Response (200):** Paginated list of BMI records, newest first.
+
+---
+
+### 5.3 Latest BMI
+
+```
+GET /api/bmi/latest
+```
+**Auth:** Required
+
+**Response (200):** Single BMI record (the most recent one).
+
+---
+
+## 6. Diet Plans
+
+Base path: `/api/diets`
+
+### 6.1 Create Diet Plan
+
+```
+POST /api/diets
+```
+**Auth:** Required (admin, superadmin)
+**Content-Type:** `multipart/form-data`
+
+**Body:**
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `title` | string | Yes | min 2, max 200 |
+| `category` | string | Yes | weight-loss, muscle-gain, bulking, cutting, other |
+| `dietType` | string | No | veg, non-veg, both (default: both) |
+| `description` | string | No | max 2000 |
+| `totalCalories` | number | No | |
+| `meals` | array | No | JSON array of meal objects |
+| `tags` | array | No | |
+| `isPublished` | boolean | No | default true |
+| `image` | file | No | jpeg/png/webp, 5MB |
+
+**Meal object:**
+```json
+{
+  "name": "Breakfast",
+  "items": ["Oats", "Banana", "Almonds"],
+  "calories": 400,
+  "protein": 15,
+  "carbs": 60,
+  "fat": 12
+}
+```
+
+---
+
+### 6.2 Update Diet Plan
+
+```
+PUT /api/diets/:id
+```
+**Auth:** Required (admin, superadmin)
+
+**Body:** Same as create (all optional).
+
+---
+
+### 6.3 List Diet Plans
+
+```
+GET /api/diets?category=weight-loss&dietType=veg&page=1&limit=10
+```
+**Auth:** Optional (adds isLiked/isFollowed if authenticated)
+
+| Query | Notes |
+|-------|-------|
+| `category` | weight-loss, muscle-gain, bulking, cutting, other |
+| `dietType` | `veg` → returns veg + both; `non-veg` → returns non-veg + both; `both` or omitted → all |
+| `tag` | Filter by tag |
+
+---
+
+### 6.4 Get Diet Plan by ID
+
+```
+GET /api/diets/:id
+```
+**Auth:** Optional
+
+---
+
+### 6.5 Suggested Diets (BMI-based)
+
+```
+GET /api/diets/suggested?goal=lose&dietType=veg&page=1&limit=10
+```
+**Auth:** Required
+
+Uses the user's latest BMI record to suggest matching diets.
+
+| Query | Notes |
+|-------|-------|
+| `goal` | `lose` → weight-loss, cutting; `gain` → muscle-gain, bulking; `maintain` → uses BMI mapping |
+| `dietType` | veg, non-veg, both |
+
+**BMI Category → Diet Mapping:**
+
+| BMI Category | Diet Category | Calorie Range |
+|-------------|---------------|---------------|
+| Underweight | muscle-gain | 2500–3500 |
+| Normal | bulking | 1800–2500 |
+| Overweight | weight-loss | 1200–1800 |
+| Obese | cutting | 1000–1500 |
+
+**Response includes suggestion metadata:**
+```json
+{
+  "data": [...],
+  "pagination": {...},
+  "suggestion": {
+    "bmiCategory": "overweight",
+    "bmi": 27.5,
+    "goal": null,
+    "recommendedCategories": ["weight-loss"],
+    "calorieRange": { "min": 1200, "max": 1800 }
+  }
+}
+```
+
+---
+
+### 6.6 Toggle Follow Diet
+
+```
+POST /api/diets/:id/follow
+```
+**Auth:** Required
+
+**Response:** Diet object with `isFollowed: true/false`.
+
+---
+
+### 6.7 Toggle Like Diet
+
+```
+POST /api/diets/:id/like
+```
+**Auth:** Required
+
+**Response:** Diet object with `isLiked: true/false`.
+
+---
+
+## 7. Posts / Community
+
+Base path: `/api/posts`
+
+### 7.1 Create Post
+
+```
+POST /api/posts
+```
+**Auth:** Required
+
+**Body:**
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `content` | string | Yes | |
+| `mediaType` | string | No | text, image, video |
+| `mediaUrl` | string | No | URL to media |
+| `hashtags` | array | No | |
+| `category` | string | No | |
+
+---
+
+### 7.2 List Posts
+
+```
+GET /api/posts?page=1&limit=10
+```
+**Auth:** Required
+
+---
+
+### 7.3 Get Post by ID
+
+```
+GET /api/posts/:id
+```
+**Auth:** Required
+
+---
+
+### 7.4 Like Post
+
+```
+POST /api/posts/:id/like
+```
+**Auth:** Required
+
+---
+
+### 7.5 Comment on Post
+
+```
+POST /api/posts/:id/comment
+```
+**Auth:** Required
+
+**Body:** `{ "content": "Great post!" }`
+
+---
+
+### 7.6 Delete Post
+
+```
+DELETE /api/posts/:id
+```
+**Auth:** Required (superadmin only)
+
+---
+
+### 7.7 Delete Comment
+
+```
+DELETE /api/posts/:id/comments/:commentId
+```
+**Auth:** Required (own comment or superadmin)
+
+---
+
+## 8. Reels
+
+Base path: `/api/reels`
+
+### 8.1 Create Reel
+
+```
+POST /api/reels
+```
+**Auth:** Required
+**Content-Type:** `multipart/form-data`
+
+**Body:**
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `video` | file | No | mp4/mov/avi, max 100MB |
+| `videoUrl` | string | No | If not uploading file |
+| `caption` | string | No | |
+| `linkedProduct` | string | No | Product ObjectId |
+
+---
+
+### 8.2 List Reels
+
+```
+GET /api/reels?page=1&limit=10
+```
+**Auth:** Optional (adds `isLiked` if authenticated)
+
+**Response includes `commentsCount`:**
+```json
+{
+  "data": [
+    {
+      "_id": "...",
+      "author": { "_id": "...", "name": "...", "avatar": "..." },
+      "videoUrl": "...",
+      "caption": "...",
+      "likesCount": 12,
+      "commentsCount": 5,
+      "isLiked": false,
+      "createdAt": "..."
+    }
+  ]
+}
+```
+
+---
+
+### 8.3 Get Reel by ID
+
+```
+GET /api/reels/:id
+```
+**Auth:** Optional
+
+---
+
+### 8.4 Like Reel
+
+```
+POST /api/reels/:id/like
+```
+**Auth:** Required
+
+---
+
+### 8.5 Comment on Reel
+
+```
+POST /api/reels/:id/comment
+```
+**Auth:** Required
+
+**Body:** `{ "content": "Amazing!" }`
+
+Increments `commentsCount` on the reel.
+
+---
+
+### 8.6 List Reel Comments
+
+```
+GET /api/reels/:id/comments?page=1&limit=20
+```
+**Auth:** Not required
+
+---
+
+## 9. Products
+
+Base path: `/api/products`
+
+### 9.1 List Products
+
+```
+GET /api/products?category=supplements&page=1&limit=10
+```
+**Auth:** None (public)
+
+---
+
+### 9.2 Get Product by ID
+
+```
+GET /api/products/:id
+```
+**Auth:** None (public)
+
+---
+
+### 9.3 Create Product
+
+```
+POST /api/products
+```
+**Auth:** Required (admin, superadmin)
+**Content-Type:** `multipart/form-data`
+
+**Body:**
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `name` | string | Yes | |
+| `price` | number | Yes | |
+| `description` | string | No | |
+| `compareAtPrice` | number | No | Strike-through price |
+| `category` | string | No | |
+| `stock` | number | No | |
+| `nutrition` | object | No | `{ servingSize, calories, protein, carbs, fat, sugar }` |
+| `images` | files | No | Max 5, jpeg/png/webp, 5MB each |
+
+---
+
+### 9.4 Update Product
+
+```
+PUT /api/products/:id
+```
+**Auth:** Required (admin, superadmin)
+
+**Body:** Same as create (all optional) + `isActive` boolean.
+
+---
+
+## 10. Cart
+
+Base path: `/api/cart`
+
+### 10.1 Add to Cart
+
+```
+POST /api/cart/add
+```
+**Auth:** Required
+
+**Body:** `{ "productId": "...", "quantity": 2 }`
+
+---
+
+### 10.2 Get Cart
+
+```
+GET /api/cart
+```
+**Auth:** Required
+
+**Response:** Cart with populated product details and computed totals.
+
+---
+
+### 10.3 Remove from Cart
+
+```
+DELETE /api/cart/item/:productId
+```
+**Auth:** Required
+
+---
+
+## 11. Orders
+
+Base path: `/api/orders`
+
+### 11.1 Create Order
+
+```
+POST /api/orders/create
+```
+**Auth:** Required
+
+**Body:**
+```json
+{
+  "shippingAddress": {
+    "street": "10 Sector 18, Dwarka",
+    "city": "Delhi",
+    "state": "Delhi",
+    "pincode": "110075",
+    "phone": "9876543213"
+  },
+  "promoCode": "REAUX20"
+}
+```
+
+Creates order from current cart. Sends notification to superadmins.
+
+---
+
+### 11.2 My Orders
+
+```
+GET /api/orders/my?page=1&limit=10
+```
+**Auth:** Required
+
+---
+
+### 11.3 All Orders (Admin)
+
+```
+GET /api/orders?page=1&limit=10
+```
+**Auth:** Required (admin, superadmin)
+
+---
+
+### 11.4 Get Order by ID
+
+```
+GET /api/orders/:id
+```
+**Auth:** Required (user sees own only)
+
+---
+
+### 11.5 Update Order Status
+
+```
+PATCH /api/orders/:id/status
+```
+**Auth:** Required (admin, superadmin)
+
+**Body:** `{ "status": "shipped" }`
+
+Valid transitions: pending → confirmed → shipped → delivered. Any → cancelled.
+
+Sends notification to the order's user on status change.
+
+---
+
+## 12. Promo Codes
+
+Base path: `/api/promo`
+
+### 12.1 List Promo Codes
+
+```
+GET /api/promo?page=1&limit=10
+```
+**Auth:** Required (admin, superadmin)
+
+---
+
+### 12.2 Create Promo Code
+
+```
+POST /api/promo/create
+```
+**Auth:** Required (superadmin)
+
+**Body:**
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `code` | string | Yes | e.g. "REAUX20" |
+| `discountType` | string | Yes | percentage, fixed |
+| `discountValue` | number | Yes | |
+| `minOrderAmount` | number | No | |
+| `maxDiscount` | number | No | Cap for percentage type |
+| `usageLimit` | number | No | |
+| `validFrom` | string | No | ISO date |
+| `validUntil` | string | No | ISO date |
+
+---
+
+### 12.3 Validate Promo Code
+
+```
+POST /api/promo/validate
+```
+**Auth:** Required
+
+**Body:** `{ "code": "REAUX20" }`
+
+---
+
+## 13. Challenges
+
+Base path: `/api/challenges`
+
+### 13.1 Create Challenge
+
+```
+POST /api/challenges
+```
+**Auth:** Required (admin, superadmin)
+
+**Body:**
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `title` | string | Yes | |
+| `type` | string | Yes | steps, workout, diet, custom |
+| `target` | number | Yes | |
+| `startDate` | string | Yes | ISO date |
+| `endDate` | string | Yes | ISO date |
+| `description` | string | No | |
+
+---
+
+### 13.2 List Challenges
+
+```
+GET /api/challenges?page=1&limit=10
+```
+**Auth:** Required
+
+---
+
+### 13.3 Join Challenge
+
+```
+POST /api/challenges/:id/join
+```
+**Auth:** Required
+
+---
+
+## 14. Notifications
+
+Base path: `/api/notifications`
+
+### 14.1 List Notifications
+
+```
+GET /api/notifications?page=1&limit=20&isRead=false&type=order
+```
+**Auth:** Required (all roles — user, admin, superadmin)
+
+| Query | Notes |
+|-------|-------|
+| `isRead` | `true` or `false` |
+| `type` | system, community, order, diet, announcement |
+
+---
+
+### 14.2 Get Notification by ID
+
+```
+GET /api/notifications/:id
+```
+**Auth:** Required
+
+Automatically marks as read.
+
+---
+
+### 14.3 Mark as Read
+
+```
+PUT /api/notifications/read/:id
+```
+**Auth:** Required
+
+---
+
+### 14.4 Mark All Read
+
+```
+PATCH /api/notifications/mark-all-read
+```
+**Auth:** Required
+
+**Response:** `{ "success": true, "data": { "modifiedCount": 5 } }`
+
+---
+
+### 14.5 Register Device Token
+
+```
+POST /api/notifications/device-token
+```
+**Auth:** Required
+
+**Body:** `{ "token": "ExponentPushToken[xxxxxxxxxxxxxx]" }`
+
+Call on login. Supports multiple devices per user.
+
+---
+
+### 14.6 Remove Device Token
+
+```
+DELETE /api/notifications/device-token
+```
+**Auth:** Required
+
+**Body:** `{ "token": "ExponentPushToken[xxxxxxxxxxxxxx]" }`
+
+Call on logout.
+
+---
+
+### 14.7 Send Test Notification
+
+```
+POST /api/notifications/test
+```
+**Auth:** Required
+
+Sends a test push notification to all of the user's registered devices.
+
+---
+
+### 14.8 Broadcast Notification
+
+```
+POST /api/notifications/broadcast
+```
+**Auth:** Required (admin, superadmin)
+
+**Body:**
+```json
+{
+  "title": "Gym Holiday Notice",
+  "message": "The gym will be closed on March 25th for Holi.",
+  "type": "announcement"
+}
+```
+
+Sends to all active users.
+
+---
+
+### Push Notification Triggers (Automatic)
+
+| Event | Recipients | Title |
+|-------|-----------|-------|
+| Order placed | Superadmins | "New Order" |
+| Order status changed | Order's user | "Order Update" |
+| Membership assigned | The member | "Membership Assigned" |
+| Membership cancelled | The member | "Membership Cancelled" |
+| Reel liked | Reel author | "New Like" |
+| Reel commented | Reel author | "New Comment" |
+| Diet liked | Diet author | "New Like" |
+| Diet followed | Diet author | "New Follower" |
+
+---
+
+## 15. Memberships
+
+Base path: `/api/memberships`
+
+### Membership Plans
+
+#### 15.1 Create Plan
+
+```
+POST /api/memberships/plans
+```
+**Auth:** Required (superadmin)
+
+**Body:**
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `name` | string | Yes | |
+| `gymId` | string | Yes | |
+| `durationDays` | number | Yes | |
+| `price` | number | Yes | |
+| `features` | array | No | |
+| `description` | string | No | |
+
+---
+
+#### 15.2 List Plans
+
+```
+GET /api/memberships/plans?page=1&limit=10
+```
+**Auth:** Required (admin, superadmin)
+
+Admin sees only their gym's plans.
+
+---
+
+#### 15.3 Get Plan by ID
 
 ```
 GET /api/memberships/plans/:id
 ```
-
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
+**Auth:** Required (admin, superadmin)
 
 ---
 
-### 14.4 Update Membership Plan
+#### 15.4 Update Plan
 
 ```
 PUT /api/memberships/plans/:id
 ```
+**Auth:** Required (superadmin)
 
-**Auth:** Bearer Token
-**Role:** `superadmin`
-
-**Request Body (all fields optional):**
-
-```json
-{
-  "name": "Basic Monthly (Updated)",
-  "price": 1799,
-  "features": ["Gym Floor Access", "Locker Room", "Wifi"],
-  "isActive": false
-}
-```
+**Body:** All plan fields optional + `isActive` boolean.
 
 ---
 
-### 14.5 Delete Membership Plan (Soft Delete)
+#### 15.5 Delete Plan
 
 ```
 DELETE /api/memberships/plans/:id
 ```
+**Auth:** Required (superadmin)
 
-**Auth:** Bearer Token
-**Role:** `superadmin`
-
-Sets `isActive: false`. Plan is no longer returned in list queries.
+Soft-deletes (sets `isActive: false`).
 
 ---
 
-### 14.6 Assign Membership to User
+### User Memberships
+
+#### 15.6 Assign Membership
 
 ```
 POST /api/memberships/assign
 ```
+**Auth:** Required (admin, superadmin)
 
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
+**Body:**
 
-Assigns a plan to a user. The `endDate` is auto-calculated as `startDate + plan.durationDays`. If no `startDate` is provided, defaults to today. Sends a push notification to the user.
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `userId` | string | Yes | |
+| `planId` | string | Yes | |
+| `startDate` | string | No | Default: now |
+| `feesAmount` | number | No | Default: 0 |
+| `feesPaid` | number | No | Default: 0 |
 
-Admins can only assign plans belonging to their gym.
+`endDate` is auto-calculated: `startDate + plan.durationDays`.
 
-**Request Body:**
+**Response:** Full membership object with computed `feesDue` and `advanceCredit`.
+
+---
+
+#### 15.7 My Memberships
+
+```
+GET /api/memberships/my?page=1&limit=10
+```
+**Auth:** Required (any user)
+
+---
+
+#### 15.8 List Memberships (Admin)
+
+```
+GET /api/memberships?status=active&gymId=...&sortBy=endDate&order=asc&page=1&limit=10
+```
+**Auth:** Required (admin, superadmin)
+
+| Query | Notes |
+|-------|-------|
+| `status` | active, expired, cancelled |
+| `userId` | Filter by specific user |
+| `gymId` | Filter by gym (superadmin). Admin auto-scoped to their gym(s). |
+| `sortBy` | endDate, feesDue, createdAt (default) |
+| `order` | asc, desc (default) |
+
+---
+
+#### 15.9 Fees Overview
+
+```
+GET /api/memberships/fees-overview?gymId=...
+```
+**Auth:** Required (admin, superadmin)
+
+Returns 4 grouped sections:
 
 ```json
 {
-  "userId": "665f1a2b3c4d5e6f7a8b9c0d",
-  "planId": "665f1a2b3c4d5e6f7a8b9c0e",
-  "startDate": "2026-03-01"
+  "data": {
+    "feesDue": [...],
+    "fullyPaid": [...],
+    "credit": [...],
+    "upcomingRenewals": [...]
+  }
 }
 ```
 
-| Field       | Type   | Required | Description                         |
-|-------------|--------|----------|-------------------------------------|
-| `userId`    | string | Yes      | User to assign the membership to    |
-| `planId`    | string | Yes      | Plan to assign                      |
-| `startDate` | string | No       | ISO date string, defaults to today  |
+| Section | Filter |
+|---------|--------|
+| `feesDue` | Active memberships with `feesDue > 0` |
+| `fullyPaid` | Active, `feesDue = 0`, `advanceCredit = 0` |
+| `credit` | Active with `advanceCredit > 0` |
+| `upcomingRenewals` | Active, `endDate` within next 30 days |
 
-**Success Response (201 Created):**
+---
 
+#### 15.10 Get Membership by ID
+
+```
+GET /api/memberships/:id
+```
+**Auth:** Required (admin, superadmin)
+
+**Response:** Full membership object:
 ```json
 {
-  "success": true,
-  "message": "Membership assigned",
   "data": {
     "_id": "...",
-    "userId": "...",
-    "planId": "...",
-    "gymId": "...",
-    "startDate": "2026-03-01T00:00:00.000Z",
-    "endDate": "2026-05-30T00:00:00.000Z",
+    "userId": { "_id": "...", "name": "...", "email": "...", "avatar": "..." },
+    "planId": { "_id": "...", "name": "...", "durationDays": 30, "price": 1500, "features": [...] },
+    "gymId": { "_id": "...", "name": "...", "slug": "..." },
+    "startDate": "2026-01-15T00:00:00.000Z",
+    "endDate": "2026-04-15T00:00:00.000Z",
     "status": "active",
+    "feesAmount": 1500,
+    "feesPaid": 1000,
+    "feesDue": 500,
+    "advanceCredit": 0,
+    "lastPaymentDate": "2026-03-10T00:00:00.000Z",
+    "paymentHistory": [
+      { "amount": 1000, "date": "2026-03-10T00:00:00.000Z", "note": "First payment" }
+    ],
     "assignedBy": "..."
   }
 }
@@ -3580,771 +1567,254 @@ Admins can only assign plans belonging to their gym.
 
 ---
 
-### 14.7 List User Memberships
-
-```
-GET /api/memberships
-```
-
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
-
-Admins see only memberships for their gym. SuperAdmin sees all.
-
-**Query Parameters:**
-
-| Parameter | Type   | Default | Description                                |
-|-----------|--------|---------|--------------------------------------------|
-| `gymId`   | string | —       | Filter by gym (superadmin only)            |
-| `userId`  | string | —       | Filter by user                             |
-| `status`  | string | —       | Filter: `active`, `expired`, `cancelled`   |
-| `page`    | number | 1       | Page number                                |
-| `limit`   | number | 10      | Results per page (max 100)                 |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "_id": "...",
-      "userId": { "_id": "...", "name": "Arjun Mehta", "email": "arjun@gmail.com", "avatar": "..." },
-      "planId": { "_id": "...", "name": "Elite Yearly", "durationDays": 365, "price": 12999, "features": ["..."] },
-      "gymId": { "_id": "...", "name": "REAUX Fitness Delhi", "slug": "reaux-fitness-delhi" },
-      "startDate": "2026-01-15T00:00:00.000Z",
-      "endDate": "2027-01-15T00:00:00.000Z",
-      "status": "active",
-      "assignedBy": "..."
-    }
-  ],
-  "pagination": { "page": 1, "limit": 10, "total": 4, "pages": 1 }
-}
-```
-
----
-
-### 14.8 Get My Memberships
-
-```
-GET /api/memberships/my
-```
-
-**Auth:** Bearer Token (any role)
-
-Returns the authenticated user's own memberships with plan and gym details populated.
-
----
-
-### 14.9 Get Membership by ID
-
-```
-GET /api/memberships/:id
-```
-
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
-
----
-
-### 14.10 Cancel Membership
+#### 15.11 Cancel Membership
 
 ```
 PATCH /api/memberships/:id/cancel
 ```
-
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
-
-Sets membership status to `cancelled`. Cannot cancel an already-cancelled membership. Admins can only cancel memberships for their gym. Sends a push notification to the user.
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Membership cancelled",
-  "data": {
-    "_id": "...",
-    "status": "cancelled",
-    "updatedAt": "..."
-  }
-}
-```
+**Auth:** Required (admin, superadmin)
 
 ---
 
-### 14.11 Record Payment
+#### 15.12 Record Payment
 
 ```
 PUT /api/memberships/:id/fees
 ```
+**Auth:** Required (admin, superadmin)
 
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
+**Body:**
 
-Records a payment. Pass a **positive** amount to add payment, or a **negative** amount to deduct from `advanceCredit`. `feesDue` and `advanceCredit` auto-recalculate. Amount cannot be 0.
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `amount` | number | Yes | Non-zero. Positive = payment. Negative = deduct from advance credit. |
+| `note` | string | No | |
+| `extendDays` | integer | No | Days to add to endDate. Reactivates expired memberships. |
 
-Optionally pass `extendDays` to push the membership end date forward (useful when a member pays for another month/quarter). If the membership was `expired`, it automatically becomes `active`.
+**Common extendDays:** 30 (monthly), 90 (quarterly), 180 (half-yearly), 365 (yearly).
 
-**Request Body:**
-
-| Field        | Type   | Required | Description                                                               |
-|--------------|--------|----------|---------------------------------------------------------------------------|
-| `amount`     | number | Yes      | Positive to add payment, negative to deduct credit (cannot be 0)         |
-| `note`       | string | No       | Optional note (e.g. "Cash payment", "Used advance for this month")        |
-| `extendDays` | number | No       | Extend membership end date by N days (e.g. 30 for monthly, 90 for quarterly) |
-
-**Example — Record payment + extend 30 days (monthly renewal):**
-```json
-{ "amount": 1499, "note": "April fees", "extendDays": 30 }
-```
-
-**Example — Deduct ₹500 from advance credit:**
-```json
-{ "amount": -500, "note": "Used advance for this month" }
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Payment recorded",
-  "data": {
-    "_id": "...",
-    "feesAmount": 2000,
-    "feesPaid": 3500,
-    "feesDue": 0,
-    "advanceCredit": 1500,
-    "lastPaymentDate": "2026-03-13T10:00:00.000Z",
-    "paymentHistory": [
-      { "amount": 2000, "date": "2026-03-01T00:00:00.000Z", "note": "Initial payment" },
-      { "amount": 2000, "date": "2026-03-10T00:00:00.000Z", "note": "Extra payment" },
-      { "amount": -500, "date": "2026-03-13T10:00:00.000Z", "note": "Used advance for this month" }
-    ]
-  }
-}
-```
+**Logic:**
+1. `feesPaid += amount`
+2. If overpaid → `feesDue = 0`, surplus → `advanceCredit`
+3. If `extendDays` → `endDate += extendDays` days
+4. Appends to `paymentHistory`
 
 ---
 
-### 14.12 Apply Credit to Dues
+#### 15.13 Apply Advance Credit
 
 ```
 POST /api/memberships/:id/apply-credit
 ```
+**Auth:** Required (admin, superadmin)
 
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
+**Body:**
 
-Transfers advance credit toward clearing pending dues. Applies `min(amount, advanceCredit)` — can never apply more than the available credit. Errors if `advanceCredit` is 0.
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `amount` | number | Yes | Positive, `<= advanceCredit` |
+| `note` | string | No | |
 
-**Request Body:**
-
-| Field    | Type   | Required | Description                                         |
-|----------|--------|----------|-----------------------------------------------------|
-| `amount` | number | Yes      | Amount to apply from credit (must be positive)      |
-| `note`   | string | No       | Optional note (auto-generated if omitted)           |
-
-**Example:**
-```json
-{ "amount": 1000, "note": "Clearing pending dues from advance credit" }
-```
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Credit applied to dues",
-  "data": {
-    "_id": "...",
-    "feesAmount": 2000,
-    "feesPaid": 4000,
-    "feesDue": 0,
-    "advanceCredit": 1000,
-    "paymentHistory": [
-      { "amount": 1000, "date": "2026-03-13T10:00:00.000Z", "note": "Clearing pending dues from advance credit" }
-    ]
-  }
-}
-```
-
-**Error — No credit available (400):**
-```json
-{ "success": false, "message": "No advance credit available" }
-```
+Transfers advance credit to clear dues.
 
 ---
 
-### 14.13 Adjust Fees (Override)
+#### 15.14 Adjust Fees (Override)
 
 ```
 PATCH /api/memberships/:id/fees/adjust
 ```
+**Auth:** Required (admin, superadmin)
 
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
+**Body:** At least one required:
 
-Directly override fees values for corrections. At least one of `feesAmount`, `feesPaid`, or `advanceCredit` is required. `feesDue` is always auto-recalculated.
+| Field | Type | Notes |
+|-------|------|-------|
+| `feesAmount` | number | Override total fees |
+| `feesPaid` | number | Override paid amount |
+| `advanceCredit` | number | Override credit |
+| `note` | string | Reason for adjustment |
 
-**Request Body:**
-
-| Field           | Type   | Required | Description                                         |
-|-----------------|--------|----------|-----------------------------------------------------|
-| `feesAmount`    | number | No       | Override total fees owed                            |
-| `feesPaid`      | number | No       | Override total amount paid                          |
-| `advanceCredit` | number | No       | Override advance credit directly                    |
-| `note`          | string | No       | Reason for adjustment (logged in paymentHistory)    |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Fees adjusted",
-  "data": {
-    "_id": "...",
-    "feesAmount": 3000,
-    "feesPaid": 3000,
-    "feesDue": 0,
-    "advanceCredit": 0
-  }
-}
-```
-
-### 14.14 Fees Overview
-
-```
-GET /api/memberships/fees-overview
-```
-
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
-
-Returns all active memberships grouped into 4 categories. Admin automatically scoped to their gym; superadmin can pass `?gymId=` to filter.
-
-**Query Parameters:**
-
-| Parameter | Type   | Required | Description                          |
-|-----------|--------|----------|--------------------------------------|
-| `gymId`   | string | No       | Filter by gym (superadmin only)      |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "feesDue": [
-      {
-        "_id": "...",
-        "feesAmount": 4499,
-        "feesPaid": 2000,
-        "feesDue": 2499,
-        "advanceCredit": 0,
-        "endDate": "2025-06-10T00:00:00.000Z",
-        "status": "active",
-        "userId": { "_id": "...", "name": "Sneha Gupta", "email": "sneha@gmail.com", "avatar": null },
-        "planId": { "_id": "...", "name": "Premium Quarterly", "price": 4499 },
-        "gymId": { "_id": "...", "name": "REAUX Fitness Mumbai" }
-      }
-    ],
-    "fullyPaid": [
-      {
-        "_id": "...",
-        "feesAmount": 12999,
-        "feesPaid": 12999,
-        "feesDue": 0,
-        "advanceCredit": 0,
-        "status": "active"
-      }
-    ],
-    "credit": [
-      {
-        "_id": "...",
-        "feesAmount": 3999,
-        "feesPaid": 5000,
-        "feesDue": 0,
-        "advanceCredit": 1001,
-        "status": "active"
-      }
-    ],
-    "upcomingRenewals": [
-      {
-        "_id": "...",
-        "endDate": "2025-04-01T00:00:00.000Z",
-        "status": "active"
-      }
-    ]
-  }
-}
-```
-
-| Field              | Description                                                     |
-|--------------------|-----------------------------------------------------------------|
-| `feesDue`          | Active memberships with outstanding balance (`feesDue > 0`)     |
-| `fullyPaid`        | Active memberships with no balance and no credit                |
-| `credit`           | Active memberships with overpayment (`advanceCredit > 0`)       |
-| `upcomingRenewals` | Active memberships expiring within the next 30 days             |
+Auto-recalculates `feesDue` from the new values.
 
 ---
 
-## 15. Analytics (Admin)
+## 16. Analytics (Admin)
 
 Base path: `/api/admin`
 
-### 15.1 Get Platform Stats
+### 16.1 Dashboard Stats
 
 ```
 GET /api/admin/stats
 ```
+**Auth:** Required (admin, superadmin)
 
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
-
-Returns aggregate counts of key platform entities.
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "totalUsers": 1250,
-    "totalPosts": 3420,
-    "totalOrders": 876,
-    "totalProducts": 45,
-    "totalChallenges": 12,
-    "recentUsers": 87
-  }
-}
-```
-
-| Field             | Type   | Description                               |
-|-------------------|--------|-------------------------------------------|
-| `totalUsers`      | number | Total registered users                    |
-| `totalPosts`      | number | Total community posts                     |
-| `totalOrders`     | number | Total orders placed                       |
-| `totalProducts`   | number | Total products in catalog                 |
-| `totalChallenges` | number | Total challenges created                  |
-| `recentUsers`     | number | Users registered in the last 30 days      |
+Cached for 5 minutes.
 
 ---
 
-### 15.2 Get Sales Report
+### 16.2 Sales Report
 
 ```
 GET /api/admin/sales-report
 ```
+**Auth:** Required (superadmin only)
 
-**Auth:** Bearer Token
-**Role:** `superadmin` only
-
-Returns comprehensive sales analytics including overall stats, monthly breakdown (last 6 months), and top-selling products.
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": {
-    "totalRevenue": 1847350,
-    "orderCount": 876,
-    "averageOrderValue": 2109.42,
-    "monthlyStats": [
-      {
-        "_id": { "year": 2025, "month": 6 },
-        "revenue": 345200,
-        "orders": 156
-      },
-      {
-        "_id": { "year": 2025, "month": 5 },
-        "revenue": 312800,
-        "orders": 143
-      },
-      {
-        "_id": { "year": 2025, "month": 4 },
-        "revenue": 298500,
-        "orders": 138
-      }
-    ],
-    "topProducts": [
-      {
-        "_id": "6662bc1fde3f4a5b6c7d8e95",
-        "name": "REAUX Whey Protein - Chocolate",
-        "totalQuantity": 342,
-        "totalRevenue": 854658
-      },
-      {
-        "_id": "6662ab0ecd2e3f4a5b6c7d84",
-        "name": "REAUX Lifting Straps",
-        "totalQuantity": 289,
-        "totalRevenue": 230911
-      },
-      {
-        "_id": "6663cd20ef4a5b6c7d8e9fa6",
-        "name": "REAUX Resistance Band Set",
-        "totalQuantity": 198,
-        "totalRevenue": 197802
-      },
-      {
-        "_id": "6664de31fa5b6c7d8e9f0ab7",
-        "name": "REAUX Pre-Workout - Berry Blast",
-        "totalQuantity": 176,
-        "totalRevenue": 263824
-      },
-      {
-        "_id": "6665ef42ab6c7d8e9f0a1bc8",
-        "name": "REAUX Gym Bag - Tactical Black",
-        "totalQuantity": 134,
-        "totalRevenue": 200866
-      }
-    ]
-  }
-}
-```
-
-| Field                        | Type   | Description                                           |
-|------------------------------|--------|-------------------------------------------------------|
-| `totalRevenue`               | number | Sum of `finalAmount` across all orders                |
-| `orderCount`                 | number | Total number of orders                                |
-| `averageOrderValue`          | number | Average `finalAmount` per order                       |
-| `monthlyStats`               | array  | Revenue and order count grouped by year/month (last 6 months) |
-| `monthlyStats[]._id.year`    | number | Year                                                  |
-| `monthlyStats[]._id.month`   | number | Month (1-12)                                          |
-| `monthlyStats[].revenue`     | number | Total revenue for the month                           |
-| `monthlyStats[].orders`      | number | Number of orders for the month                        |
-| `topProducts`                | array  | Top 5 best-selling products by quantity               |
-| `topProducts[]._id`          | string | Product ID                                            |
-| `topProducts[].name`         | string | Product name                                          |
-| `topProducts[].totalQuantity`| number | Total units sold                                      |
-| `topProducts[].totalRevenue` | number | Total revenue from this product                       |
-
-**Error Responses:**
-
-*403 Forbidden -- Not superadmin:*
-
-```json
-{
-  "success": false,
-  "message": "Insufficient permissions"
-}
-```
+Cached for 5 minutes.
 
 ---
 
-## 16. Contact
+## 17. Contact
 
 Base path: `/api/contact`
 
-### 16.1 Submit Contact Form
+### 17.1 Submit Contact Form
 
 ```
 POST /api/contact
 ```
-
 **Auth:** None (public)
 
-**Request Body:**
+**Body:**
 
-| Field     | Type   | Required | Description              |
-|-----------|--------|----------|--------------------------|
-| `name`    | string | Yes      | Sender's name            |
-| `email`   | string | Yes      | Valid email address      |
-| `phone`   | string | Yes      | Phone number (min 10 digits) |
-| `message` | string | Yes      | Message content          |
-
-**Success Response (201 Created):**
-
-```json
-{
-  "success": true,
-  "message": "Message submitted successfully",
-  "data": {
-    "_id": "...",
-    "name": "Arjun Sharma",
-    "email": "arjun@gmail.com",
-    "message": "I'd like to know more about your gym memberships.",
-    "status": "open",
-    "createdAt": "2026-03-13T10:00:00.000Z"
-  }
-}
-```
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `name` | string | Yes | |
+| `email` | string | Yes | Valid email |
+| `phone` | string | Yes | Min 10 digits |
+| `message` | string | Yes | Min 10 characters |
 
 ---
 
-### 16.2 List Contact Submissions
+### 17.2 List Submissions
 
 ```
-GET /api/contact
+GET /api/contact?page=1&limit=10
 ```
-
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
-
-Returns paginated list of contact form submissions.
-
-**Query Parameters:** `page`, `limit`
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "_id": "...",
-      "name": "Arjun Sharma",
-      "email": "arjun@gmail.com",
-      "message": "I'd like to know more about your gym memberships.",
-      "status": "open",
-      "createdAt": "2026-03-13T10:00:00.000Z"
-    }
-  ],
-  "pagination": { "page": 1, "limit": 10, "total": 5, "pages": 1 }
-}
-```
+**Auth:** Required (admin, superadmin)
 
 ---
 
-### 16.3 Resolve Contact Submission
+### 17.3 Resolve Submission
 
 ```
 PATCH /api/contact/:id/resolve
 ```
-
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
-
-Marks a contact submission as resolved.
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Marked as resolved",
-  "data": {
-    "_id": "...",
-    "status": "resolved"
-  }
-}
-```
+**Auth:** Required (admin, superadmin)
 
 ---
 
-## 17. Workouts
+## 18. Workouts
 
 Base path: `/api/workouts`
 
-Workout templates are created by admins/superadmins and publicly viewable.
-
-### 17.1 Create Workout
+### 18.1 Create Workout
 
 ```
 POST /api/workouts
 ```
+**Auth:** Required (admin, superadmin)
 
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
+**Body:**
 
-**Request Body:**
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `title` | string | Yes | |
+| `category` | string | Yes | strength, cardio, flexibility, hiit, yoga, crossfit, other |
+| `difficulty` | string | Yes | beginner, intermediate, advanced |
+| `description` | string | No | |
+| `duration` | number | No | In minutes |
+| `caloriesBurn` | number | No | |
+| `exercises` | array | No | |
+| `image` | string | No | URL |
+| `tags` | array | No | |
 
-| Field          | Type     | Required | Values / Notes                                              |
-|----------------|----------|----------|-------------------------------------------------------------|
-| `title`        | string   | Yes      | Workout title                                               |
-| `description`  | string   | No       | Description                                                 |
-| `category`     | string   | Yes      | `strength`, `cardio`, `flexibility`, `hiit`, `yoga`, `crossfit`, `other` |
-| `difficulty`   | string   | Yes      | `beginner`, `intermediate`, `advanced`                      |
-| `duration`     | number   | No       | Duration in minutes                                         |
-| `caloriesBurn` | number   | No       | Estimated calories burned                                   |
-| `image`        | string   | No       | Image URL                                                   |
-| `tags`         | string[] | No       | e.g. `["chest", "upper-body"]`                              |
-| `exercises`    | array    | No       | List of exercises (see below)                               |
-
-**Exercise Object:**
-
-| Field      | Type   | Required | Notes                         |
-|------------|--------|----------|-------------------------------|
-| `name`     | string | Yes      | Exercise name                 |
-| `sets`     | number | No       | Number of sets                |
-| `reps`     | number | No       | Reps per set                  |
-| `weight`   | number | No       | Weight in kg                  |
-| `duration` | number | No       | Duration in seconds           |
-| `restTime` | number | No       | Rest time in seconds          |
-| `notes`    | string | No       | Additional notes              |
-
-**Success Response (201 Created):**
-
+**Exercise object:**
 ```json
 {
-  "success": true,
-  "message": "Workout created",
-  "data": {
-    "_id": "...",
-    "title": "Full Body Strength",
-    "category": "strength",
-    "difficulty": "intermediate",
-    "duration": 45,
-    "caloriesBurn": 350,
-    "tags": ["full-body"],
-    "exercises": [
-      { "name": "Squat", "sets": 4, "reps": 10, "weight": 60, "restTime": 90 },
-      { "name": "Bench Press", "sets": 3, "reps": 8, "weight": 80, "restTime": 120 }
-    ],
-    "isPublished": true,
-    "createdAt": "2026-03-13T10:00:00.000Z"
-  }
+  "name": "Bench Press",
+  "sets": 4,
+  "reps": 10,
+  "weight": 60,
+  "duration": 0,
+  "restTime": 90,
+  "notes": "Control the descent"
 }
 ```
 
 ---
 
-### 17.2 List Workouts
+### 18.2 List Workouts
 
 ```
-GET /api/workouts
+GET /api/workouts?category=strength&difficulty=beginner&tag=chest&page=1&limit=10
 ```
-
 **Auth:** None (public)
 
-**Query Parameters:**
-
-| Parameter    | Type   | Description                                     |
-|--------------|--------|-------------------------------------------------|
-| `category`   | string | Filter by category (e.g. `strength`)            |
-| `difficulty` | string | Filter by difficulty (e.g. `beginner`)          |
-| `tag`        | string | Filter by tag (e.g. `chest`)                    |
-| `page`       | number | Page number (default: 1)                        |
-| `limit`      | number | Results per page (default: 10, max: 100)        |
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "data": [ { "_id": "...", "title": "Full Body Strength", "category": "strength", "difficulty": "intermediate", "duration": 45 } ],
-  "pagination": { "page": 1, "limit": 10, "total": 8, "pages": 1 }
-}
-```
-
 ---
 
-### 17.3 Get Workout by ID
+### 18.3 Get Workout by ID
 
 ```
 GET /api/workouts/:id
 ```
-
 **Auth:** None (public)
-
-Returns full workout details including exercises.
 
 ---
 
-### 17.4 Update Workout
+### 18.4 Update Workout
 
 ```
 PUT /api/workouts/:id
 ```
+**Auth:** Required (admin, superadmin)
 
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
-
-All fields from Create are accepted as optional. Set `isPublished: false` to soft-delete.
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Workout updated",
-  "data": { "_id": "...", "title": "Updated Title", "isPublished": true }
-}
-```
+**Body:** All create fields optional + `isPublished` boolean.
 
 ---
 
-### 17.5 Delete Workout (Soft Delete)
+### 18.5 Delete Workout
 
 ```
 DELETE /api/workouts/:id
 ```
-
-**Auth:** Bearer Token
-**Role:** `admin` or `superadmin`
-
-Sets `isPublished: false`. The workout is excluded from list responses but not removed from the database.
-
-**Success Response (200 OK):**
-
-```json
-{
-  "success": true,
-  "message": "Workout deleted"
-}
-```
+**Auth:** Required (admin, superadmin)
 
 ---
 
-## Appendix: Order Statuses
+## File Upload Reference
 
-| Status      | Description                                |
-|-------------|--------------------------------------------|
-| `pending`   | Order placed, awaiting confirmation        |
-| `confirmed` | Order confirmed by the system/admin        |
-| `shipped`   | Order shipped to the customer              |
-| `delivered` | Order delivered successfully               |
-| `cancelled` | Order has been cancelled                   |
+| Endpoint | Field | Type | Max Size | Folder |
+|----------|-------|------|----------|--------|
+| `PUT /api/auth/profile` | `avatar` | jpeg, png, webp | 5MB | reaux-labs/profiles |
+| `POST /api/gyms` | `images`, `logo` | jpeg, png, webp | 5MB | reaux-labs/gyms |
+| `POST /api/diets` | `image` | jpeg, png, webp | 5MB | reaux-labs/diets |
+| `POST /api/products` | `images` | jpeg, png, webp | 5MB | reaux-labs/products |
+| `POST /api/reels` | `video` | mp4, mov, avi | 100MB | reaux-labs/reels |
 
-**Status Transitions:** `pending` → `confirmed` → `shipped` → `delivered`. Any non-terminal status can also transition to `cancelled`. Terminal statuses (`delivered`, `cancelled`) cannot be changed.
+---
 
-## Appendix: BMI Categories
+## Appendix
 
-| Category      | BMI Range           |
-|---------------|---------------------|
-| `underweight` | BMI < 18.5          |
-| `normal`      | 18.5 <= BMI < 25    |
-| `overweight`  | 25 <= BMI < 30      |
-| `obese`       | BMI >= 30           |
+### Diet Categories
+`weight-loss`, `muscle-gain`, `bulking`, `cutting`, `other`
 
-## Appendix: Notification Types
+### Diet Types
+`veg`, `non-veg`, `both` (default)
 
-| Type        | Description                                   |
-|-------------|-----------------------------------------------|
-| `system`    | General system notifications                  |
-| `order`     | Order status updates                          |
-| `challenge` | Challenge invites and updates                 |
-| `community` | Social interactions (likes, comments, etc.)   |
-| `diet`      | Diet plan updates and reminders               |
+### Workout Categories
+`strength`, `cardio`, `flexibility`, `hiit`, `yoga`, `crossfit`, `other`
 
-## Appendix: Diet Plan Categories
+### Workout Difficulties
+`beginner`, `intermediate`, `advanced`
 
-| Category      | Description                          |
-|---------------|--------------------------------------|
-| `weight-loss` | Calorie-deficit plans                |
-| `muscle-gain` | High-protein surplus plans           |
-| `bulking`     | High-calorie muscle-building plans   |
-| `cutting`     | Low-calorie fat-loss plans           |
-| `other`       | Other/custom diet plans              |
+### Order Status Flow
+`pending` → `confirmed` → `shipped` → `delivered`
+Any status → `cancelled`
 
-**Diet Types:** `veg`, `non-veg`, `both` (default)
+### Membership Statuses
+`active`, `expired`, `cancelled`
 
-## Appendix: Membership Statuses
-
-| Status      | Description                                    |
-|-------------|------------------------------------------------|
-| `active`    | Currently valid membership                     |
-| `expired`   | Past the end date                              |
-| `cancelled` | Manually cancelled by admin/superadmin         |
-
-## Appendix: Challenge Types
-
-| Type      | Description                     |
-|-----------|---------------------------------|
-| `steps`   | Step-count based challenges     |
-| `workout` | Exercise/rep based challenges   |
-| `diet`    | Diet adherence challenges       |
-| `custom`  | Custom-defined challenges       |
+### User Roles
+`user`, `admin`, `superadmin`
