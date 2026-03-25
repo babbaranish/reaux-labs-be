@@ -1,10 +1,26 @@
 import httpStatus from 'http-status';
 import { Contact } from './contact.model.js';
+import { User } from '../user/user.model.js';
 import { AppError } from '../../shared/appError.js';
 import { paginate } from '../../shared/pagination.js';
+import { createNotification } from '../../shared/pushNotification.js';
 
 export const submitContact = async (data) => {
   const contact = await Contact.create(data);
+
+  // Notify all superadmins
+  User.find({ role: 'superadmin', status: 'active' }).select('_id').lean().then((admins) => {
+    admins.forEach((admin) => {
+      createNotification({
+        userId: admin._id,
+        title: 'New Contact Submission',
+        message: `${data.name} submitted a contact form: "${data.message.slice(0, 80)}${data.message.length > 80 ? '...' : ''}"`,
+        type: 'system',
+        metadata: { contactId: contact._id },
+      }).catch(() => {});
+    });
+  });
+
   return contact;
 };
 
