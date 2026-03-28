@@ -13,7 +13,7 @@ export const create = asyncHandler(async (req, res) => {
 });
 
 export const list = asyncHandler(async (req, res) => {
-  const { data, pagination } = await productService.getProducts(req.query);
+  const { data, pagination } = await productService.getProducts(req.query, req.user?.role);
   return sendPaginated(res, data, pagination);
 });
 

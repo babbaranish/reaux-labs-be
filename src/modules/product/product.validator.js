@@ -19,6 +19,7 @@ export const createProductSchema = z.object({
     category: z.string().optional(),
     stock: z.coerce.number().int().min(0).optional(),
     nutrition: nutritionSchema,
+    visibility: z.enum(['all', 'admin', 'user']).optional(),
   }),
 });
 
@@ -32,6 +33,7 @@ export const updateProductSchema = z.object({
     category: z.string().optional(),
     stock: z.coerce.number().int().min(0).optional(),
     nutrition: nutritionSchema,
+    visibility: z.enum(['all', 'admin', 'user']).optional(),
     isActive: z.boolean().optional(),
   }),
 });

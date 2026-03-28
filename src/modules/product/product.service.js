@@ -10,8 +10,20 @@ export const createProduct = async (data, userId) => {
   return product;
 };
 
-export const getProducts = async (query) => {
+export const getProducts = async (query, userRole) => {
   const filter = { isActive: true };
+
+  // Visibility filtering by role
+  if (userRole === 'superadmin') {
+    // superadmin sees all products
+  } else if (userRole === 'admin') {
+    filter.visibility = { $in: ['all', 'admin'] };
+  } else if (userRole === 'user') {
+    filter.visibility = { $in: ['all', 'user'] };
+  } else {
+    // unauthenticated — only public products
+    filter.visibility = 'all';
+  }
 
   if (query.category) {
     filter.category = query.category;

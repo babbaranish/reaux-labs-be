@@ -986,6 +986,93 @@ Directly override fee values. At least one of `feesAmount`, `feesPaid`, `advance
 
 ---
 
+## 13. PRODUCTS — Visibility by Role
+
+**Status: DONE**
+
+### `GET /api/products?category=supplements&page=1&limit=10`
+**Auth:** Optional (`optionalAuth` — sends token if logged in)
+
+Products have a `visibility` field: `all`, `admin`, or `user`.
+
+**Visibility matrix:**
+
+| `visibility` | User sees | Admin sees | Superadmin sees | No auth |
+|---|---|---|---|---|
+| `all` | Yes | Yes | Yes | Yes |
+| `admin` | No | Yes | Yes | No |
+| `user` | Yes | No | Yes | No |
+
+**Query params:**
+
+| Param | Type | Notes |
+|---|---|---|
+| `category` | string | `supplements`, `equipment`, `apparel`, `accessories`, `supplies` |
+| `search` | string | Full-text search on name + description |
+| `page` | number | Default 1 |
+| `limit` | number | Default 10, max 100 |
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "...",
+      "name": "REAUX Whey Protein Isolate 1kg",
+      "description": "Premium whey protein isolate with 28g protein per scoop.",
+      "price": 2499,
+      "compareAtPrice": 2999,
+      "images": ["https://images.unsplash.com/..."],
+      "category": "supplements",
+      "stock": 120,
+      "visibility": "all",
+      "isActive": true,
+      "createdBy": "...",
+      "createdAt": "2026-03-01T00:00:00.000Z"
+    }
+  ],
+  "pagination": { "page": 1, "limit": 10, "total": 6, "pages": 1 }
+}
+```
+
+### `POST /api/products`
+**Auth:** Required (admin/superadmin)
+
+**Body (multipart/form-data):**
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `name` | string | Yes | Product name |
+| `price` | number | Yes | Price in INR |
+| `description` | string | No | |
+| `compareAtPrice` | number | No | Strike-through price |
+| `category` | string | No | e.g. `supplements`, `equipment` |
+| `stock` | number | No | Default 0 |
+| `visibility` | string | No | `all` (default), `admin`, or `user` |
+| `nutrition` | object | No | `{ servingSize, calories, protein, carbs, fat, sugar }` |
+| `images` | files | No | Max 5, jpeg/png/webp, 5MB each |
+
+**Example — admin-only product:**
+```json
+{ "name": "Gym Floor Cleaner 5L", "price": 1499, "category": "supplies", "visibility": "admin" }
+```
+
+**Example — user-exclusive product:**
+```json
+{ "name": "Members-Only Gloves", "price": 899, "category": "accessories", "visibility": "user" }
+```
+
+### `PUT /api/products/:id`
+**Auth:** Required (admin/superadmin)
+
+Same fields as create (all optional) + `isActive: boolean`. Can change visibility:
+```json
+{ "visibility": "user" }
+```
+
+---
+
 ## Summary
 
 | # | Feature | Status | Endpoint |
@@ -1002,3 +1089,4 @@ Directly override fee values. At least one of `feesAmount`, `feesPaid`, `advance
 | 10 | Multi-gym admin (`gymIds`) | DONE | User model + all admin-scoped queries |
 | 11 | Membership gymId filter | DONE | `GET /memberships?gymId=` |
 | 12 | paymentHistory date always present | DONE | Schema default `Date.now` |
+| 13 | Product visibility by role | DONE | `GET /products` with `optionalAuth`, `visibility` field on create/update |

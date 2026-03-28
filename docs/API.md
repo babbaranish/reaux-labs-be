@@ -149,7 +149,7 @@ Run `npm run seed` to populate the database with test data.
 | Comments | 10 | On various posts |
 | Reels | 6 | With video URLs, likes |
 | Reel Comments | 10 | Across reels |
-| Products | 6 | Supplements, equipment, apparel |
+| Products | 6 | 3 `all` (supplements/accessories), 2 `admin` (equipment/supplies), 1 `user` (members-only) |
 | Carts | 4 | Active carts |
 | Orders | 6 | Various statuses |
 | Promo Codes | 3 | REAUX20, FLAT200, WELCOME50 |
@@ -1019,12 +1019,63 @@ GET /api/reels/:id/comments?page=1&limit=20
 
 Base path: `/api/products`
 
+### Product Visibility
+
+Products have a `visibility` field that controls who can see them:
+
+| `visibility` | User sees | Admin sees | Superadmin sees | No auth |
+|-------------|-----------|------------|-----------------|---------|
+| `all` | Yes | Yes | Yes | Yes |
+| `admin` | No | Yes | Yes | No |
+| `user` | Yes | No | Yes | No |
+
+**Superadmin always sees all products regardless of visibility.**
+
 ### 9.1 List Products
 
 ```
 GET /api/products?category=supplements&page=1&limit=10
 ```
-**Auth:** None (public)
+**Auth:** Optional (uses `optionalAuth` — token not required, but if present, filters by role)
+
+**Query params:**
+
+| Param | Type | Notes |
+|-------|------|-------|
+| `category` | string | Filter by category (e.g. `supplements`, `equipment`, `apparel`, `accessories`, `supplies`) |
+| `search` | string | Full-text search on name + description |
+| `page` | number | Page number (default 1) |
+| `limit` | number | Results per page (default 10, max 100) |
+
+**Visibility filtering (automatic based on auth):**
+- **Superadmin** → returns all 6 products (all + admin + user)
+- **Admin** → returns 5 products (all + admin)
+- **User** → returns 4 products (all + user)
+- **No auth** → returns 3 products (all only)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "...",
+      "name": "REAUX Whey Protein Isolate 1kg",
+      "description": "Premium whey protein isolate with 28g protein per scoop.",
+      "price": 2499,
+      "compareAtPrice": 2999,
+      "images": ["https://images.unsplash.com/..."],
+      "category": "supplements",
+      "stock": 120,
+      "visibility": "all",
+      "isActive": true,
+      "createdBy": "...",
+      "createdAt": "2026-03-01T00:00:00.000Z"
+    }
+  ],
+  "pagination": { "page": 1, "limit": 10, "total": 6, "pages": 1 }
+}
+```
 
 ---
 
@@ -1033,7 +1084,29 @@ GET /api/products?category=supplements&page=1&limit=10
 ```
 GET /api/products/:id
 ```
-**Auth:** None (public)
+**Auth:** None (public — returns product regardless of visibility)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "_id": "...",
+    "name": "Commercial Treadmill Belt Replacement",
+    "description": "Heavy-duty treadmill belt for commercial gym treadmills.",
+    "price": 8999,
+    "compareAtPrice": 11999,
+    "images": ["https://images.unsplash.com/..."],
+    "category": "equipment",
+    "stock": 10,
+    "visibility": "admin",
+    "nutrition": null,
+    "isActive": true,
+    "createdBy": "...",
+    "createdAt": "2026-03-01T00:00:00.000Z"
+  }
+}
+```
 
 ---
 
@@ -1049,14 +1122,56 @@ POST /api/products
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| `name` | string | Yes | |
-| `price` | number | Yes | |
-| `description` | string | No | |
-| `compareAtPrice` | number | No | Strike-through price |
-| `category` | string | No | |
-| `stock` | number | No | |
+| `name` | string | Yes | Product name |
+| `price` | number | Yes | Price in INR |
+| `description` | string | No | Product description |
+| `compareAtPrice` | number | No | Strike-through price (original MRP) |
+| `category` | string | No | e.g. `supplements`, `equipment`, `apparel`, `accessories`, `supplies` |
+| `stock` | number | No | Default `0` |
+| `visibility` | string | No | `all` (default), `admin`, or `user` |
 | `nutrition` | object | No | `{ servingSize, calories, protein, carbs, fat, sugar }` |
-| `images` | files | No | Max 5, jpeg/png/webp, 5MB each |
+| `images` | files | No | Max 5 files, jpeg/png/webp, 5MB each |
+
+**Example — admin-only product:**
+```json
+{
+  "name": "Gym Floor Cleaner 5L",
+  "price": 1499,
+  "category": "supplies",
+  "stock": 50,
+  "visibility": "admin"
+}
+```
+
+**Example — user-exclusive product:**
+```json
+{
+  "name": "Members-Only Training Gloves",
+  "price": 899,
+  "category": "accessories",
+  "stock": 150,
+  "visibility": "user"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "_id": "...",
+    "name": "Gym Floor Cleaner 5L",
+    "price": 1499,
+    "category": "supplies",
+    "stock": 50,
+    "visibility": "admin",
+    "isActive": true,
+    "createdBy": "...",
+    "createdAt": "..."
+  },
+  "message": "Product created"
+}
+```
 
 ---
 
@@ -1068,6 +1183,11 @@ PUT /api/products/:id
 **Auth:** Required (admin, superadmin)
 
 **Body:** Same as create (all optional) + `isActive` boolean.
+
+Can change visibility of an existing product:
+```json
+{ "visibility": "user" }
+```
 
 ---
 
