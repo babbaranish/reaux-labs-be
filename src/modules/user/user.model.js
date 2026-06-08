@@ -19,7 +19,8 @@ const userSchema = new mongoose.Schema(
     dateOfBirth: { type: Date },
     dateOfJoining: { type: Date },
     gender: { type: String, enum: ['male', 'female', 'other'] },
-    status: { type: String, enum: ['active', 'disabled'], default: 'active' },
+    status: { type: String, enum: ['active', 'disabled', 'deleted'], default: 'active' },
+    deletedAt: { type: Date, default: null },
     savedAddresses: [
       {
         label: { type: String, trim: true },           // e.g. "Home", "Work"

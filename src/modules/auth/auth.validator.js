@@ -45,3 +45,9 @@ export const resetPasswordSchema = z.object({
     password: z.string().min(6).max(128),
   }),
 });
+
+export const deleteAccountSchema = z.object({
+  body: z.object({
+    password: z.string().min(1, 'Password is required to confirm account deletion'),
+  }),
+});

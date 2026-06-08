@@ -13,7 +13,7 @@ export const optionalAuth = async (req, _res, next) => {
       const user = await User.findById(decoded.userId)
         .select('email name role status gymId gymIds')
         .lean();
-      if (user && user.status !== 'disabled') {
+      if (user && user.status === 'active') {
         req.user = {
           id: user._id,
           email: user.email,
@@ -55,6 +55,10 @@ export const authenticate = async (req, res, next) => {
 
     if (user.status === 'disabled') {
       return sendError(res, 'Account is disabled', httpStatus.FORBIDDEN);
+    }
+
+    if (user.status === 'deleted') {
+      return sendError(res, 'Account has been deleted', httpStatus.FORBIDDEN);
     }
 
     req.user = {

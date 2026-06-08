@@ -28,6 +28,11 @@ export const updateProfile = asyncHandler(async (req, res) => {
   return sendSuccess(res, user, httpStatus.OK, 'Profile updated');
 });
 
+export const deleteAccount = asyncHandler(async (req, res) => {
+  await authService.deleteAccount(req.user.id, req.body.password);
+  return sendSuccess(res, null, httpStatus.OK, 'Your account has been deleted');
+});
+
 export const forgotPassword = asyncHandler(async (req, res) => {
   const result = await passwordResetService.requestPasswordReset(req.body.email);
   return sendSuccess(res, result, httpStatus.OK, result.message);

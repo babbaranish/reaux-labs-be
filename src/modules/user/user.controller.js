@@ -33,6 +33,11 @@ export const updateUserStatus = asyncHandler(async (req, res) => {
   return sendSuccess(res, user, httpStatus.OK, 'User status updated');
 });
 
+export const deleteUser = asyncHandler(async (req, res) => {
+  await userService.adminSoftDeleteUser(req.params.id, req.user);
+  return sendSuccess(res, null, httpStatus.OK, 'User account deleted');
+});
+
 // ── Saved Addresses ──────────────────────────────────────
 
 export const getAddresses = asyncHandler(async (req, res) => {

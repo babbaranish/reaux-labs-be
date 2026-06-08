@@ -42,7 +42,7 @@ export const createUser = async ({ name, firstName, lastName, email, password, p
 };
 
 export const getUsers = async (query, user) => {
-  const filter = {};
+  const filter = { status: { $ne: 'deleted' } };
   if (query.role) filter.role = query.role;
 
   // Admin sees only regular users from their gym(s) (no admins/superadmins)
@@ -120,6 +120,66 @@ export const updateUserStatus = async (id, status) => {
   const user = await User.findByIdAndUpdate(id, { status }, { new: true, runValidators: true });
   if (!user) throw new AppError('User not found', httpStatus.NOT_FOUND);
   return user;
+};
+
+// Soft-delete a user: flag the account and scrub all personally identifiable
+// information. The email is replaced with a unique placeholder so the original
+// address is freed for re-registration and the user can no longer be looked up.
+// Used by both the self-service account deletion flow and admin deletion.
+export const softDeleteUser = async (id) => {
+  const user = await User.findByIdAndUpdate(
+    id,
+    {
+      $set: {
+        status: 'deleted',
+        deletedAt: new Date(),
+        name: 'Deleted User',
+        email: `deleted_${id}@deleted.reauxlabs.local`,
+        savedAddresses: [],
+        fcmTokens: [],
+      },
+      $unset: {
+        firstName: '',
+        lastName: '',
+        phone: '',
+        avatar: '',
+        dateOfBirth: '',
+        gender: '',
+        height: '',
+        weight: '',
+      },
+    },
+    { new: true, runValidators: true }
+  ).select('-password');
+
+  if (!user) throw new AppError('User not found', httpStatus.NOT_FOUND);
+  return user;
+};
+
+// Admin/superadmin-initiated soft delete with role and gym scoping.
+export const adminSoftDeleteUser = async (id, adminUser) => {
+  if (id === adminUser.id.toString()) {
+    throw new AppError('Use the account deletion endpoint to delete your own account', httpStatus.BAD_REQUEST);
+  }
+
+  const target = await User.findById(id);
+  if (!target) throw new AppError('User not found', httpStatus.NOT_FOUND);
+  if (target.status === 'deleted') throw new AppError('Account already deleted', httpStatus.CONFLICT);
+  if (target.role === 'superadmin') throw new AppError('Cannot delete a superadmin account', httpStatus.FORBIDDEN);
+
+  // Admins can only delete regular users within their own gym(s)
+  if (adminUser.role === 'admin') {
+    if (target.role !== 'user') {
+      throw new AppError('You can only delete users in your gym', httpStatus.FORBIDDEN);
+    }
+    const adminGymIds = adminUser.gymIds?.length ? adminUser.gymIds : [adminUser.gymId].filter(Boolean);
+    const targetGymStr = target.gymId?.toString();
+    if (!adminGymIds.some((gid) => gid.toString() === targetGymStr)) {
+      throw new AppError('You can only delete users in your gym', httpStatus.FORBIDDEN);
+    }
+  }
+
+  return softDeleteUser(id);
 };
 
 export const getTodayBirthdays = async (user) => {

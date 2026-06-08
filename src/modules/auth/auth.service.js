@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import httpStatus from 'http-status';
 import { User } from '../user/user.model.js';
+import { softDeleteUser } from '../user/user.service.js';
 import { AppError } from '../../shared/appError.js';
 import { sendEmail } from '../../shared/emailSender.js';
 import { welcomeEmail } from '../../shared/emailTemplates.js';
@@ -39,6 +40,10 @@ export const login = async ({ email, password }) => {
     throw new AppError('Account is disabled', httpStatus.FORBIDDEN);
   }
 
+  if (user.status === 'deleted') {
+    throw new AppError('Account has been deleted', httpStatus.FORBIDDEN);
+  }
+
   const isMatch = await user.comparePassword(password);
   if (!isMatch) {
     throw new AppError('Invalid email or password', httpStatus.UNAUTHORIZED);
@@ -56,6 +61,25 @@ export const getProfile = async (userId) => {
     throw new AppError('User not found', httpStatus.NOT_FOUND);
   }
   return user;
+};
+
+// Self-service account deletion (Google Play requirement). Requires the user to
+// re-enter their password, then soft-deletes and anonymizes the account.
+export const deleteAccount = async (userId, password) => {
+  const user = await User.findById(userId).select('+password');
+  if (!user) {
+    throw new AppError('User not found', httpStatus.NOT_FOUND);
+  }
+  if (user.status === 'deleted') {
+    throw new AppError('Account already deleted', httpStatus.CONFLICT);
+  }
+
+  const isMatch = await user.comparePassword(password);
+  if (!isMatch) {
+    throw new AppError('Incorrect password', httpStatus.UNAUTHORIZED);
+  }
+
+  await softDeleteUser(userId);
 };
 
 export const updateProfile = async (userId, updates) => {
