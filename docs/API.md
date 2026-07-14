@@ -943,8 +943,15 @@ POST /api/reels
 |-------|------|----------|-------|
 | `video` | file | No | mp4/mov/avi, max 100MB |
 | `videoUrl` | string | No | If not uploading file |
+| `thumbnail` | file | No | jpg/png/webp cover image |
+| `thumbnailUrl` | string | No | If not uploading file |
 | `caption` | string | No | |
-| `linkedProduct` | string | No | Product ObjectId |
+| `category` | string | No | `workout` \| `nutrition` \| `tips` \| `motivation` \| `other` (default `other`) |
+| `linkedProduct` | string | No | Product ObjectId (in-app shop product) |
+| `productLink` | string | No | External shop/affiliate URL |
+
+> If `linkedProduct` receives a value that is not a valid ObjectId (e.g. a shop URL from an
+> older app build), it is stored as `productLink` instead of failing the request.
 
 ---
 

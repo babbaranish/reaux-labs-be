@@ -26,7 +26,7 @@ export const uploadPostMedia = multer({
 });
 
 export const uploadReelVideo = multer({
-  storage: createStorage('reels', videoFormats),
+  storage: createStorage('reels', [...videoFormats, ...imageFormats]),
   limits: { fileSize: 100 * 1024 * 1024 },
 });
 

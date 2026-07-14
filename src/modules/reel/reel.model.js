@@ -4,8 +4,15 @@ const reelSchema = new mongoose.Schema(
   {
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     videoUrl: { type: String, required: true },
+    thumbnailUrl: { type: String },
     caption: { type: String },
+    category: {
+      type: String,
+      enum: ['workout', 'nutrition', 'tips', 'motivation', 'other'],
+      default: 'other',
+    },
     linkedProduct: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+    productLink: { type: String },
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     likesCount: { type: Number, default: 0 },
     commentsCount: { type: Number, default: 0 },
