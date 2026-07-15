@@ -6,7 +6,7 @@ import { asyncHandler } from '../../middleware/asyncHandler.js';
 // ── Plans ───────────────────────────────────────────────
 
 export const createPlan = asyncHandler(async (req, res) => {
-  const plan = await membershipService.createPlan(req.body, req.user.id);
+  const plan = await membershipService.createPlan(req.body, req.user);
   return sendSuccess(res, plan, httpStatus.CREATED, 'Membership plan created');
 });
 
@@ -24,12 +24,12 @@ export const getPlanById = asyncHandler(async (req, res) => {
 });
 
 export const updatePlan = asyncHandler(async (req, res) => {
-  const plan = await membershipService.updatePlan(req.params.id, req.body);
+  const plan = await membershipService.updatePlan(req.params.id, req.body, req.user);
   return sendSuccess(res, plan, httpStatus.OK, 'Plan updated');
 });
 
 export const deletePlan = asyncHandler(async (req, res) => {
-  await membershipService.deletePlan(req.params.id);
+  await membershipService.deletePlan(req.params.id, req.user);
   return sendSuccess(res, null, httpStatus.OK, 'Plan deleted');
 });
 

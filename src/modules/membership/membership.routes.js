@@ -19,7 +19,7 @@ const router = Router();
 router.post(
   '/plans',
   authenticate,
-  authorize('superadmin'),
+  authorize('admin', 'superadmin'),
   validate(createPlanSchema),
   ctrl.createPlan
 );
@@ -41,7 +41,7 @@ router.get(
 router.put(
   '/plans/:id',
   authenticate,
-  authorize('superadmin'),
+  authorize('admin', 'superadmin'),
   validate(updatePlanSchema),
   ctrl.updatePlan
 );
@@ -49,7 +49,7 @@ router.put(
 router.delete(
   '/plans/:id',
   authenticate,
-  authorize('superadmin'),
+  authorize('admin', 'superadmin'),
   ctrl.deletePlan
 );
 

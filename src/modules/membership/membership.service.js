@@ -9,11 +9,16 @@ import { createNotification } from '../../shared/pushNotification.js';
 
 // ── Plan CRUD (SuperAdmin) ──────────────────────────────
 
-export const createPlan = async (data, userId) => {
+export const createPlan = async (data, adminUser) => {
   const gym = await Gym.findById(data.gymId);
   if (!gym) throw new AppError('Gym not found', httpStatus.NOT_FOUND);
 
-  const plan = await MembershipPlan.create({ ...data, createdBy: userId });
+  // An admin may only create plans for their own gym; superadmin any gym.
+  if (adminUser.role === 'admin' && !isAdminGym(adminUser, data.gymId)) {
+    throw new AppError('You can only create plans for your gym', httpStatus.FORBIDDEN);
+  }
+
+  const plan = await MembershipPlan.create({ ...data, createdBy: adminUser.id });
   return plan;
 };
 
@@ -43,19 +48,36 @@ export const getPlanById = async (id) => {
   return plan;
 };
 
-export const updatePlan = async (id, data) => {
-  const plan = await MembershipPlan.findByIdAndUpdate(id, data, { new: true });
+export const updatePlan = async (id, data, adminUser) => {
+  const plan = await MembershipPlan.findById(id);
   if (!plan) throw new AppError('Plan not found', httpStatus.NOT_FOUND);
+
+  // Admins may only touch their own gym's plans, and can't move a plan to
+  // another gym.
+  if (adminUser?.role === 'admin') {
+    if (!isAdminGym(adminUser, plan.gymId)) {
+      throw new AppError('You can only edit plans for your gym', httpStatus.FORBIDDEN);
+    }
+    if (data.gymId && !isAdminGym(adminUser, data.gymId)) {
+      throw new AppError('You can only assign plans to your gym', httpStatus.FORBIDDEN);
+    }
+  }
+
+  Object.assign(plan, data);
+  await plan.save();
   return plan;
 };
 
-export const deletePlan = async (id) => {
-  const plan = await MembershipPlan.findByIdAndUpdate(
-    id,
-    { isActive: false },
-    { new: true }
-  );
+export const deletePlan = async (id, adminUser) => {
+  const plan = await MembershipPlan.findById(id);
   if (!plan) throw new AppError('Plan not found', httpStatus.NOT_FOUND);
+
+  if (adminUser?.role === 'admin' && !isAdminGym(adminUser, plan.gymId)) {
+    throw new AppError('You can only delete plans for your gym', httpStatus.FORBIDDEN);
+  }
+
+  plan.isActive = false;
+  await plan.save();
   return plan;
 };
 
