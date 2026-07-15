@@ -10,6 +10,7 @@ export const createOrderSchema = z.object({
       phone: z.string().min(1),
     }),
     promoCode: z.string().optional(),
+    paymentMethod: z.enum(['cod', 'online']).optional(),
   }),
 });
 

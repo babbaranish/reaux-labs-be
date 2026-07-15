@@ -9,6 +9,7 @@ const orderSchema = new mongoose.Schema(
         name: { type: String },
         price: { type: Number },
         quantity: { type: Number },
+        flavour: { type: String },
       },
     ],
     totalAmount: { type: Number },
@@ -20,6 +21,18 @@ const orderSchema = new mongoose.Schema(
       enum: ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'],
       default: 'pending',
     },
+    paymentMethod: {
+      type: String,
+      enum: ['cod', 'online'],
+      default: 'cod',
+    },
+    paymentStatus: {
+      type: String,
+      enum: ['pending', 'paid', 'failed'],
+      default: 'pending',
+    },
+    razorpayOrderId: { type: String },
+    razorpayPaymentId: { type: String },
     shippingAddress: {
       street: { type: String },
       city: { type: String },

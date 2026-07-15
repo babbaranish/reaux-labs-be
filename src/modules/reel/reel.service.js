@@ -11,6 +11,26 @@ export const createReel = async (data, userId) => {
   return Reel.create({ ...data, author: userId });
 };
 
+export const deleteReel = async (reelId, userId, userRole) => {
+  const reel = await Reel.findById(reelId).select('author').lean();
+  if (!reel) {
+    throw new AppError('Reel not found', httpStatus.NOT_FOUND);
+  }
+
+  const isAuthor = reel.author.toString() === userId.toString();
+  const isAdmin = userRole === 'admin' || userRole === 'superadmin';
+  if (!isAuthor && !isAdmin) {
+    throw new AppError('You can only delete your own reels', httpStatus.FORBIDDEN);
+  }
+
+  await Promise.all([
+    Reel.findByIdAndDelete(reelId),
+    ReelComment.deleteMany({ reelId }),
+  ]);
+
+  return reel;
+};
+
 export const getReels = async (query, userId) => {
   const result = await paginate(Reel, {}, {
     page: query.page,

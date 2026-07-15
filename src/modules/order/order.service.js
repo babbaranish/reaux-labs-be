@@ -10,7 +10,7 @@ import { sendEmail } from '../../shared/emailSender.js';
 import { orderConfirmationEmail, newOrderAdminEmail } from '../../shared/emailTemplates.js';
 import { createNotification } from '../../shared/pushNotification.js';
 
-export const createOrder = async (userId, { shippingAddress, promoCode }) => {
+export const createOrder = async (userId, { shippingAddress, promoCode, paymentMethod = 'cod' }) => {
   const cart = await Cart.findOne({ userId }).populate('items.product', 'name price');
 
   if (!cart || cart.items.length === 0) {
@@ -22,6 +22,7 @@ export const createOrder = async (userId, { shippingAddress, promoCode }) => {
     name: item.product.name,
     price: item.product.price,
     quantity: item.quantity,
+    flavour: item.flavour || undefined,
   }));
 
   const totalAmount = items.reduce(
@@ -51,6 +52,8 @@ export const createOrder = async (userId, { shippingAddress, promoCode }) => {
     finalAmount,
     promoCode: promoCode ? promoCode.toUpperCase() : undefined,
     shippingAddress,
+    paymentMethod,
+    paymentStatus: 'pending',
   });
 
   cart.items = [];

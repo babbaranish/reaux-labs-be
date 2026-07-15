@@ -3,10 +3,28 @@ import * as productService from './product.service.js';
 import { sendSuccess, sendPaginated } from '../../shared/response.js';
 import { asyncHandler } from '../../middleware/asyncHandler.js';
 
+// Multipart delivers arrays as a JSON string (or a bare string for one value).
+const parseList = (value) => {
+  if (value == null) return undefined;
+  if (Array.isArray(value)) return value.map(String).filter(Boolean);
+  if (typeof value !== 'string') return undefined;
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) return parsed.map(String).filter(Boolean);
+  } catch {
+    // Not JSON — treat it as a single value.
+  }
+  return value ? [value] : [];
+};
+
 export const create = asyncHandler(async (req, res) => {
   const data = { ...req.body };
   if (req.files?.length) {
     data.images = req.files.map((f) => f.path);
+  }
+  const flavours = parseList(data.flavours);
+  if (flavours) {
+    data.flavours = flavours;
   }
   const product = await productService.createProduct(data, req.user.id);
   return sendSuccess(res, product, httpStatus.CREATED, 'Product created');
@@ -24,6 +42,10 @@ export const getById = asyncHandler(async (req, res) => {
 
 export const update = asyncHandler(async (req, res) => {
   const data = { ...req.body };
+  const updatedFlavours = parseList(data.flavours);
+  if (updatedFlavours) {
+    data.flavours = updatedFlavours;
+  }
   if (req.files?.length) {
     // Merge existing images (sent from frontend) with newly uploaded ones
     const existing = Array.isArray(data.existingImages)

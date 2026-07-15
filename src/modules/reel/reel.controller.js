@@ -45,6 +45,11 @@ export const like = asyncHandler(async (req, res) => {
   return sendSuccess(res, reel, httpStatus.OK, 'Like toggled');
 });
 
+export const deleteReel = asyncHandler(async (req, res) => {
+  await reelService.deleteReel(req.params.id, req.user.id, req.user.role);
+  return sendSuccess(res, null, httpStatus.OK, 'Reel deleted');
+});
+
 export const comment = asyncHandler(async (req, res) => {
   const result = await reelService.addComment(req.params.id, req.user.id, req.body.content);
   return sendSuccess(res, result, httpStatus.CREATED, 'Comment added');

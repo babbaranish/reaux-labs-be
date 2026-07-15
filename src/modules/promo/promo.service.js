@@ -30,6 +30,34 @@ export const createPromo = async (data, userId) => {
   return promo;
 };
 
+export const getPromoById = async (id) => {
+  const promo = await PromoCode.findById(id).lean();
+
+  if (!promo) {
+    throw new AppError('Promo code not found', httpStatus.NOT_FOUND);
+  }
+
+  return promo;
+};
+
+export const updatePromo = async (id, data) => {
+  const update = { ...data };
+  if (update.code) {
+    update.code = update.code.toUpperCase();
+  }
+
+  const promo = await PromoCode.findByIdAndUpdate(id, update, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!promo) {
+    throw new AppError('Promo code not found', httpStatus.NOT_FOUND);
+  }
+
+  return promo;
+};
+
 export const validatePromo = async (code, orderAmount = 0) => {
   const promo = await PromoCode.findOne({ code: code.toUpperCase(), isActive: true });
 

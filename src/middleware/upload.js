@@ -12,12 +12,16 @@ const createStorage = (folder, allowedFormats) =>
     },
   });
 
-const imageFormats = ['jpeg', 'jpg', 'png', 'webp'];
+// heic/heif included because many phones shoot in those formats by default.
+const imageFormats = ['jpeg', 'jpg', 'png', 'webp', 'heic', 'heif'];
 const videoFormats = ['mp4', 'mov', 'avi'];
+
+// Phone photos routinely exceed 5MB, which was silently failing uploads.
+const IMAGE_SIZE_LIMIT = 15 * 1024 * 1024;
 
 export const uploadProfileImage = multer({
   storage: createStorage('profiles', imageFormats),
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: IMAGE_SIZE_LIMIT },
 });
 
 export const uploadPostMedia = multer({

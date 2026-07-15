@@ -3,6 +3,18 @@ import * as postService from './post.service.js';
 import { sendSuccess, sendPaginated } from '../../shared/response.js';
 import { asyncHandler } from '../../middleware/asyncHandler.js';
 
+// Runs after multer, before validation: Cloudinary's URL is the only mediaUrl a
+// post may carry, so derive it (and mediaType) from the uploaded file.
+export const attachUploadedMedia = (req, res, next) => {
+  if (req.file?.path) {
+    req.body.mediaUrl = req.file.path;
+    req.body.mediaType = req.file.mimetype?.startsWith('video/') ? 'video' : 'image';
+  } else if (!req.body.mediaUrl) {
+    req.body.mediaType = 'text';
+  }
+  next();
+};
+
 export const create = asyncHandler(async (req, res) => {
   const post = await postService.createPost(req.body, req.user.id);
   return sendSuccess(res, post, httpStatus.CREATED, 'Post created');

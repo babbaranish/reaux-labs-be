@@ -15,6 +15,11 @@ const env = Object.freeze({
   CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
 
+  // Set both on Render to enable online payments. Without them, checkout stays
+  // Cash on Delivery only and the payment endpoints return 503.
+  RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID,
+  RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET,
+
   BREVO_API_KEY: process.env.BREVO_API_KEY,
   EMAIL_FROM: process.env.EMAIL_FROM || 'noreply@reauxlabs.com',
   EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME || 'REAUX Labs',

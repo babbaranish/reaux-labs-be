@@ -28,6 +28,14 @@ const coerceBool = z.union([
   z.string().transform((val) => val === 'true'),
 ]);
 
+// Optional gram/calorie value: blank or NaN (multipart or a NaN that became null)
+// becomes undefined instead of failing the whole request; 0 is allowed.
+const optionalNumber = z.preprocess((v) => {
+  if (v === '' || v === null || v === undefined) return undefined;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : undefined;
+}, z.number().min(0).optional());
+
 export const createDietSchema = z.object({
   body: z.object({
     title: z.string().min(2).max(200),
@@ -36,7 +44,10 @@ export const createDietSchema = z.object({
     description: z.string().max(2000).optional(),
     meals: jsonArrayOrArray(mealSchema).optional(),
     image: z.string().optional(),
-    totalCalories: z.coerce.number().positive().optional(),
+    totalCalories: optionalNumber,
+    protein: optionalNumber,
+    carbs: optionalNumber,
+    fat: optionalNumber,
     tags: jsonArrayOrArray(z.string()).optional(),
     isPublished: coerceBool.optional(),
   }),
@@ -50,7 +61,10 @@ export const updateDietSchema = z.object({
     description: z.string().max(2000).optional(),
     meals: jsonArrayOrArray(mealSchema).optional(),
     image: z.string().optional(),
-    totalCalories: z.coerce.number().positive().optional(),
+    totalCalories: optionalNumber,
+    protein: optionalNumber,
+    carbs: optionalNumber,
+    fat: optionalNumber,
     tags: jsonArrayOrArray(z.string()).optional(),
     isPublished: coerceBool.optional(),
   }),

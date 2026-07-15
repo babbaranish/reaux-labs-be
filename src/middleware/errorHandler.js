@@ -5,7 +5,13 @@ export const errorHandler = (err, req, res, _next) => {
   let statusCode = err.statusCode || httpStatus.INTERNAL_SERVER_ERROR;
   let message = err.message || 'Internal Server Error';
 
-  if (err.name === 'ValidationError') {
+  if (err.name === 'MulterError') {
+    statusCode = httpStatus.BAD_REQUEST;
+    message =
+      err.code === 'LIMIT_FILE_SIZE'
+        ? 'Image is too large. Please use a photo under 15MB.'
+        : `Upload error: ${err.message}`;
+  } else if (err.name === 'ValidationError') {
     statusCode = httpStatus.BAD_REQUEST;
     message = Object.values(err.errors).map((e) => e.message).join(', ');
   } else if (err.code === 11000) {

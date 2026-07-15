@@ -14,6 +14,10 @@ export const getCart = asyncHandler(async (req, res) => {
 });
 
 export const removeFromCart = asyncHandler(async (req, res) => {
-  const cart = await cartService.removeFromCart(req.user.id, req.params.productId);
+  const cart = await cartService.removeFromCart(
+    req.user.id,
+    req.params.productId,
+    req.query.flavour
+  );
   return sendSuccess(res, cart, httpStatus.OK, 'Item removed from cart');
 });

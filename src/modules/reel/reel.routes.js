@@ -18,8 +18,11 @@ router.post(
 );
 router.get('/', optionalAuth, reelController.list);
 router.get('/:id', optionalAuth, reelController.getById);
+router.delete('/:id', authenticate, reelController.deleteReel);
 router.post('/:id/like', authenticate, reelController.like);
+// The app posts to the plural path; the singular one stays for older clients.
 router.post('/:id/comment', authenticate, validate(createCommentSchema), reelController.comment);
+router.post('/:id/comments', authenticate, validate(createCommentSchema), reelController.comment);
 router.get('/:id/comments', reelController.listComments);
 
 export default router;

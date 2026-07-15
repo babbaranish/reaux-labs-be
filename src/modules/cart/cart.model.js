@@ -7,6 +7,8 @@ const cartSchema = new mongoose.Schema(
       {
         product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
         quantity: { type: Number, default: 1 },
+        // Same product in two flavours = two separate cart lines.
+        flavour: { type: String, default: null },
       },
     ],
   },

@@ -39,6 +39,11 @@ const dietPlanSchema = new mongoose.Schema(
     meals: [mealSchema],
     image: { type: String },
     totalCalories: { type: Number },
+    // Plan-level macro targets (grams). Shown on the plan; independent of the
+    // per-meal-item macros.
+    protein: { type: Number },
+    carbs: { type: Number },
+    fat: { type: Number },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     isPublished: { type: Boolean, default: true },
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

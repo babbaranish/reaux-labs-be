@@ -8,6 +8,8 @@ const productSchema = new mongoose.Schema(
     compareAtPrice: { type: Number },
     images: [{ type: String }],
     category: { type: String },
+    // Flavour names offered for this product, e.g. ['French Cake', 'Choco Blast'].
+    flavours: [{ type: String }],
     stock: { type: Number, default: 0 },
     nutrition: {
       servingSize: { type: String },

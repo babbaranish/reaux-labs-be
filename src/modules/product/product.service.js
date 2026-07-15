@@ -26,7 +26,10 @@ export const getProducts = async (query, userRole) => {
   }
 
   if (query.category) {
-    filter.category = query.category;
+    // Match case-insensitively: a filter tab must not miss a product that was
+    // saved with different casing.
+    const escaped = query.category.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    filter.category = new RegExp(`^${escaped}$`, 'i');
   }
 
   if (query.search) {
