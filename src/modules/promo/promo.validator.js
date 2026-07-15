@@ -30,5 +30,8 @@ export const updatePromoSchema = z.object({
 export const validatePromoSchema = z.object({
   body: z.object({
     code: z.string().min(1),
+    // Needed for the discount + min-order calculation; without it in the schema
+    // the validate middleware strips it and discount always comes back 0.
+    orderAmount: z.coerce.number().min(0).optional(),
   }),
 });
