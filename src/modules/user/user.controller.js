@@ -29,7 +29,7 @@ export const updateUserRole = asyncHandler(async (req, res) => {
 });
 
 export const updateUserStatus = asyncHandler(async (req, res) => {
-  const user = await userService.updateUserStatus(req.params.id, req.body.status);
+  const user = await userService.updateUserStatus(req.params.id, req.body.status, req.user);
   return sendSuccess(res, user, httpStatus.OK, 'User status updated');
 });
 

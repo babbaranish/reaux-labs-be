@@ -20,7 +20,7 @@ router.get('/', authenticate, authorize('admin', 'superadmin'), userController.g
 router.get('/:id', authenticate, authorize('admin', 'superadmin'), userController.getUserById);
 router.put('/:id', authenticate, authorize('admin', 'superadmin'), validate(updateUserSchema), userController.updateUser);
 router.put('/:id/role', authenticate, authorize('superadmin'), validate(updateUserRoleSchema), userController.updateUserRole);
-router.put('/:id/status', authenticate, authorize('superadmin'), validate(updateUserStatusSchema), userController.updateUserStatus);
+router.put('/:id/status', authenticate, authorize('admin', 'superadmin'), validate(updateUserStatusSchema), userController.updateUserStatus);
 router.delete('/:id', authenticate, authorize('admin', 'superadmin'), userController.deleteUser);
 
 export default router;

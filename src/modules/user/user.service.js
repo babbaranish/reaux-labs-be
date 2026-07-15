@@ -42,7 +42,7 @@ export const createUser = async ({ name, firstName, lastName, email, password, p
 };
 
 export const getUsers = async (query, user) => {
-  const filter = { status: { $ne: 'deleted' } };
+  const filter = {};
   if (query.role) filter.role = query.role;
 
   // Admin sees only regular users from their gym(s) (no admins/superadmins)
@@ -50,8 +50,12 @@ export const getUsers = async (query, user) => {
     const ids = user.gymIds?.length ? user.gymIds : [user.gymId].filter(Boolean);
     filter.gymId = ids.length === 1 ? ids[0] : { $in: ids };
     filter.role = 'user';
-  } else if (query.gymId) {
-    filter.gymId = query.gymId;
+    // A deactivated member disappears from the admin's list but stays in the DB,
+    // still visible to the superadmin.
+    filter.status = 'active';
+  } else {
+    filter.status = { $ne: 'deleted' };
+    if (query.gymId) filter.gymId = query.gymId;
   }
 
   return paginate(User, filter, {
@@ -116,9 +120,23 @@ export const updateUserRole = async (id, role) => {
   return user;
 };
 
-export const updateUserStatus = async (id, status) => {
-  const user = await User.findByIdAndUpdate(id, { status }, { new: true, runValidators: true });
-  if (!user) throw new AppError('User not found', httpStatus.NOT_FOUND);
+export const updateUserStatus = async (id, status, actor) => {
+  const target = await User.findById(id).select('role gymId');
+  if (!target) throw new AppError('User not found', httpStatus.NOT_FOUND);
+
+  // Admins may only deactivate/reactivate regular members of their own gym(s);
+  // superadmin may change anyone.
+  if (actor?.role === 'admin') {
+    if (target.role !== 'user') {
+      throw new AppError('You can only manage members of your gym', httpStatus.FORBIDDEN);
+    }
+    const adminGymIds = actor.gymIds?.length ? actor.gymIds : [actor.gymId].filter(Boolean);
+    if (!adminGymIds.some((gid) => gid.toString() === target.gymId?.toString())) {
+      throw new AppError('You can only manage members of your gym', httpStatus.FORBIDDEN);
+    }
+  }
+
+  const user = await User.findByIdAndUpdate(id, { status }, { new: true, runValidators: true }).select('-password');
   return user;
 };
 
