@@ -17,3 +17,13 @@ export const joinChallenge = asyncHandler(async (req, res) => {
   const challenge = await challengeService.joinChallenge(req.params.id, req.user.id);
   return sendSuccess(res, challenge, httpStatus.OK, 'Joined challenge successfully');
 });
+
+export const updateChallenge = asyncHandler(async (req, res) => {
+  const challenge = await challengeService.updateChallenge(req.params.id, req.body);
+  return sendSuccess(res, challenge, httpStatus.OK, 'Challenge updated');
+});
+
+export const deleteChallenge = asyncHandler(async (req, res) => {
+  await challengeService.deleteChallenge(req.params.id);
+  return sendSuccess(res, null, httpStatus.OK, 'Challenge deleted');
+});

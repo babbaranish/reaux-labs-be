@@ -10,3 +10,16 @@ export const createChallengeSchema = z.object({
     description: z.string().optional(),
   }),
 });
+
+export const updateChallengeSchema = z.object({
+  body: z.object({
+    title: z.string().min(1).max(200).optional(),
+    type: z.enum(['steps', 'workout', 'diet', 'custom']).optional(),
+    target: z.number().positive().optional(),
+    startDate: z.string().min(1).optional(),
+    endDate: z.string().min(1).optional(),
+    description: z.string().optional(),
+    // Setting this false retires a challenge — getChallenges only lists isActive.
+    isActive: z.boolean().optional(),
+  }),
+});

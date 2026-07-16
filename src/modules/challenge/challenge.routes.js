@@ -3,7 +3,7 @@ import * as challengeController from './challenge.controller.js';
 import { authenticate } from '../../middleware/authenticate.js';
 import { authorize } from '../../middleware/authorize.js';
 import { validate } from '../../middleware/validate.js';
-import { createChallengeSchema } from './challenge.validator.js';
+import { createChallengeSchema, updateChallengeSchema } from './challenge.validator.js';
 
 const router = Router();
 
@@ -16,5 +16,18 @@ router.post(
 );
 router.get('/', authenticate, challengeController.getChallenges);
 router.post('/:id/join', authenticate, challengeController.joinChallenge);
+router.put(
+  '/:id',
+  authenticate,
+  authorize('admin', 'superadmin'),
+  validate(updateChallengeSchema),
+  challengeController.updateChallenge
+);
+router.delete(
+  '/:id',
+  authenticate,
+  authorize('admin', 'superadmin'),
+  challengeController.deleteChallenge
+);
 
 export default router;

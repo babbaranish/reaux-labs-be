@@ -46,3 +46,26 @@ export const joinChallenge = async (challengeId, userId) => {
 
   return challenge;
 };
+
+export const updateChallenge = async (challengeId, data) => {
+  const challenge = await Challenge.findByIdAndUpdate(challengeId, data, {
+    new: true,
+    runValidators: true,
+  }).select('-participants');
+
+  if (!challenge) {
+    throw new AppError('Challenge not found', httpStatus.NOT_FOUND);
+  }
+
+  return challenge;
+};
+
+export const deleteChallenge = async (challengeId) => {
+  const challenge = await Challenge.findByIdAndDelete(challengeId);
+
+  if (!challenge) {
+    throw new AppError('Challenge not found', httpStatus.NOT_FOUND);
+  }
+
+  return challenge;
+};
