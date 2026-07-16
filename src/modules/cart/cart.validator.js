@@ -13,3 +13,13 @@ export const removeFromCartSchema = z.object({
     productId: z.string().min(1),
   }),
 });
+
+export const updateCartItemSchema = z.object({
+  params: z.object({
+    productId: z.string().min(1),
+  }),
+  body: z.object({
+    quantity: z.number().int(),
+    flavour: z.string().optional(),
+  }),
+});

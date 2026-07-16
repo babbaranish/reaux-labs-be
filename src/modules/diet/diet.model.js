@@ -25,6 +25,7 @@ const dietPlanSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
     description: { type: String, trim: true },
+    instructions: { type: String, trim: true, maxlength: 5000 },
     slug: { type: String, unique: true, trim: true },
     category: {
       type: String,

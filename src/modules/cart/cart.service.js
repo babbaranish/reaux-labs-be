@@ -33,6 +33,33 @@ export const getCart = async (userId) => {
   return cart || { userId, items: [] };
 };
 
+export const updateCartItemQuantity = async (userId, productId, quantity, flavour) => {
+  // Keep per-flavour lines distinct: a null flavour is its own line.
+  const line = flavour || null;
+
+  let cart;
+  if (quantity <= 0) {
+    // Non-positive quantity removes the line entirely.
+    cart = await Cart.findOneAndUpdate(
+      { userId },
+      { $pull: { items: { product: productId, flavour: line } } },
+      { new: true }
+    );
+  } else {
+    cart = await Cart.findOneAndUpdate(
+      { userId, items: { $elemMatch: { product: productId, flavour: line } } },
+      { $set: { 'items.$.quantity': quantity } },
+      { new: true }
+    );
+  }
+
+  if (!cart) {
+    throw new AppError('Cart not found', httpStatus.NOT_FOUND);
+  }
+
+  return cart.populate('items.product', 'name price images stock flavours');
+};
+
 export const removeFromCart = async (userId, productId, flavour) => {
   // With no flavour given, drop every line for that product (older clients).
   const match = flavour ? { product: productId, flavour } : { product: productId };

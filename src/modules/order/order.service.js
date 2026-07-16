@@ -105,7 +105,10 @@ export const createOrder = async (userId, { shippingAddress, promoCode, paymentM
 };
 
 export const getMyOrders = async (userId, query) => {
-  return paginate(Order, { userId }, {
+  const filter = { userId };
+  if (query.status) filter.status = query.status;
+
+  return paginate(Order, filter, {
     page: query.page,
     limit: query.limit,
     sort: { createdAt: -1 },
@@ -113,7 +116,10 @@ export const getMyOrders = async (userId, query) => {
 };
 
 export const getAllOrders = async (query) => {
-  return paginate(Order, {}, {
+  const filter = {};
+  if (query.status) filter.status = query.status;
+
+  return paginate(Order, filter, {
     page: query.page,
     limit: query.limit,
     sort: { createdAt: -1 },

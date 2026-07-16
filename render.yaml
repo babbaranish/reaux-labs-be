@@ -1,0 +1,41 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Deploy: Render Dashboard → New → Blueprint → connect this repo → fill in the
+# secret env vars marked `sync: false` below.
+services:
+  - type: web
+    name: reaux-labs-be
+    runtime: node
+    plan: free
+    region: singapore
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Secrets — set these in the Render dashboard (they are not stored in git):
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      # Optional — enable online payments (without these, checkout is COD-only):
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      # Optional — transactional email:
+      - key: BREVO_API_KEY
+        sync: false
+      # Optional — push notifications (paste the service account JSON as one line):
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
