@@ -24,7 +24,9 @@ export const requestPasswordReset = async (email) => {
 
   await PasswordReset.create({ userId: user._id, token, expiresAt });
 
-  const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${token}`;
+  // Deep link that opens the app directly on the reset screen (see env.PASSWORD_RESET_URL).
+  const sep = env.PASSWORD_RESET_URL.includes('?') ? '&' : '?';
+  const resetUrl = `${env.PASSWORD_RESET_URL}${sep}token=${token}`;
 
   sendEmail({
     to: email,

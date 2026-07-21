@@ -26,6 +26,11 @@ const env = Object.freeze({
 
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
 
+  // Base URL used to build the password-reset link that is emailed to the user.
+  // Defaults to the mobile app's deep link scheme so tapping the link opens the
+  // app straight on the reset screen. Override with a web URL if a web app exists.
+  PASSWORD_RESET_URL: process.env.PASSWORD_RESET_URL || 'reauxlabs://reset-password',
+
   RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
   RATE_LIMIT_MAX: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
 
