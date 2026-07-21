@@ -3,10 +3,14 @@ import * as gymController from './gym.controller.js';
 import { authenticate } from '../../middleware/authenticate.js';
 import { authorize } from '../../middleware/authorize.js';
 import { validate } from '../../middleware/validate.js';
-import { uploadGymImages } from '../../middleware/upload.js';
-import { createGymSchema, updateGymSchema, assignAdminSchema } from './gym.validator.js';
+import { uploadGymImages, uploadProfileImage } from '../../middleware/upload.js';
+import { createGymSchema, updateGymSchema, assignAdminSchema, createCandidateSchema } from './gym.validator.js';
 
 const router = Router();
+
+// Candidates (gym-member management) — declared before '/:id' routes.
+router.post('/candidates', authenticate, authorize('admin', 'superadmin'), uploadProfileImage.single('avatar'), validate(createCandidateSchema), gymController.createCandidate);
+router.delete('/candidates/:id', authenticate, authorize('admin', 'superadmin'), gymController.removeCandidate);
 
 router.post('/', authenticate, authorize('superadmin'), uploadGymImages.fields([{ name: 'images', maxCount: 5 }, { name: 'logo', maxCount: 1 }]), validate(createGymSchema), gymController.create);
 router.get('/', gymController.list);

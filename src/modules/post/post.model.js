@@ -9,6 +9,7 @@ const postSchema = new mongoose.Schema(
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     likesCount: { type: Number, default: 0 },
     commentsCount: { type: Number, default: 0 },
+    viewsCount: { type: Number, default: 0 },
     hashtags: [{ type: String }],
     category: { type: String },
   },

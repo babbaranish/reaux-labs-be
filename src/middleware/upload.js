@@ -39,6 +39,11 @@ export const uploadDietImage = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
+export const uploadCycleImage = multer({
+  storage: createStorage('cycles', imageFormats),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
 export const uploadProductImages = multer({
   storage: createStorage('products', imageFormats),
   limits: { fileSize: 5 * 1024 * 1024 },

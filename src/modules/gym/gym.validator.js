@@ -1,5 +1,23 @@
 import { z } from 'zod/v4';
 
+// Optional numeric value: blank/NaN → undefined (multipart form data); 0 allowed.
+const optionalNumber = z.preprocess((v) => {
+  if (v === '' || v === null || v === undefined) return undefined;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : undefined;
+}, z.number().min(0).optional());
+
+export const createCandidateSchema = z.object({
+  body: z.object({
+    name: z.string().min(1).max(200),
+    phone: z.string().min(1).max(20),
+    monthlyFees: optionalNumber,
+    startDate: z.string().optional(),
+    avatar: z.string().optional(),
+    gymId: z.string().optional(),
+  }),
+});
+
 const dayHoursSchema = z
   .object({
     open: z.string(),

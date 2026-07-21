@@ -42,6 +42,19 @@ export const remove = asyncHandler(async (req, res) => {
   return sendSuccess(res, null, httpStatus.OK, 'Gym deleted successfully');
 });
 
+export const createCandidate = asyncHandler(async (req, res) => {
+  if (req.file?.path) {
+    req.body.avatar = req.file.path;
+  }
+  const membership = await gymService.createCandidate(req.body, req.user);
+  return sendSuccess(res, membership, httpStatus.CREATED, 'Candidate added successfully');
+});
+
+export const removeCandidate = asyncHandler(async (req, res) => {
+  const result = await gymService.removeCandidate(req.params.id, req.user);
+  return sendSuccess(res, result, httpStatus.OK, 'Candidate removed');
+});
+
 export const assignAdmin = asyncHandler(async (req, res) => {
   const user = await gymService.assignAdmin(req.params.id, req.body.userId);
   return sendSuccess(res, user, httpStatus.OK, 'Admin assigned successfully');

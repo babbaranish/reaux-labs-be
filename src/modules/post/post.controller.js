@@ -35,6 +35,11 @@ export const like = asyncHandler(async (req, res) => {
   return sendSuccess(res, post, httpStatus.OK, 'Like toggled');
 });
 
+export const analytics = asyncHandler(async (req, res) => {
+  const data = await postService.getPostAnalytics(req.params.id, req.user);
+  return sendSuccess(res, data);
+});
+
 export const comment = asyncHandler(async (req, res) => {
   const result = await postService.addComment(req.params.id, req.user.id, req.body.content);
   return sendSuccess(res, result, httpStatus.CREATED, 'Comment added');

@@ -18,6 +18,7 @@ router.post(
 );
 router.get('/', authenticate, postController.list);
 router.get('/:id', authenticate, postController.getById);
+router.get('/:id/analytics', authenticate, postController.analytics);
 router.post('/:id/like', authenticate, postController.like);
 router.post('/:id/comment', authenticate, validate(createCommentSchema), postController.comment);
 router.delete('/:id', authenticate, authorize('superadmin'), postController.deletePost);
