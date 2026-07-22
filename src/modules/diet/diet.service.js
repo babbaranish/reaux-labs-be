@@ -180,8 +180,39 @@ export const getSuggestedDiets = async (userId, query) => {
   }
   // dietType=both or not provided → no filter, show all
 
+  // Optional TDEE-based calorie window. `targetCalories` is the user's estimated
+  // daily calories (BMR × activity level, computed on the client). When present it
+  // drives the match — diets whose totalCalories fall within ±`calorieWindow` of the
+  // target — instead of the coarse BMI-category calorie band. Query values arrive as
+  // strings (this route has no validator), so coerce and sanity-check here.
+  const target = Number(query.targetCalories);
+  const hasTarget = Number.isFinite(target) && target > 0;
+  const rawWindow = Number(query.calorieWindow);
+  const calorieWindow = Number.isFinite(rawWindow) && rawWindow > 0 ? rawWindow : 300;
+  const calorieWindowFilter = hasTarget
+    ? { totalCalories: { $gte: target - calorieWindow, $lte: target + calorieWindow } }
+    : null;
+
   let result;
-  if (goalCategories) {
+  let appliedCalorieRange = null;
+
+  if (hasTarget) {
+    // 1) calorie window (+ goal categories, if a goal was chosen) + dietType
+    const primaryFilter = { ...baseFilter, ...calorieWindowFilter };
+    if (goalCategories) primaryFilter.category = { $in: goalCategories };
+    result = await paginate(DietPlan, primaryFilter, paginateOpts);
+    appliedCalorieRange = { min: target - calorieWindow, max: target + calorieWindow };
+
+    // 2) drop the goal-category restriction, keep the calorie window
+    if (result.data.length === 0 && goalCategories) {
+      result = await paginate(DietPlan, { ...baseFilter, ...calorieWindowFilter }, paginateOpts);
+    }
+    // 3) fall back to the BMI-category band (no longer a calorie-window match)
+    if (result.data.length === 0) {
+      result = await paginate(DietPlan, { ...baseFilter, category: mapping.category }, paginateOpts);
+      appliedCalorieRange = null;
+    }
+  } else if (goalCategories) {
     result = await paginate(DietPlan, { ...baseFilter, category: { $in: goalCategories } }, paginateOpts);
   } else {
     // Try category + calorie range first
@@ -221,8 +252,11 @@ export const getSuggestedDiets = async (userId, query) => {
       bmiCategory: latestBmi.category,
       bmi: latestBmi.bmi,
       goal: query.goal || null,
+      targetCalories: hasTarget ? target : null,
       recommendedCategories: goalCategories || [mapping.category],
-      calorieRange: goalCategories ? null : { min: mapping.minCalories, max: mapping.maxCalories },
+      calorieRange:
+        appliedCalorieRange ||
+        (goalCategories ? null : { min: mapping.minCalories, max: mapping.maxCalories }),
     },
   };
 };
