@@ -11,7 +11,10 @@ import { BMIRecord } from '../bmi/bmi.model.js';
 
 const BMI_DIET_MAP = {
   underweight: { category: 'muscle-gain', minCalories: 2500, maxCalories: 3500 },
-  normal:      { category: 'bulking',     minCalories: 1800, maxCalories: 2500 },
+  // Normal-weight users should maintain, not bulk — 'bulking' pushed calorie-
+  // surplus plans onto healthy users. 'other' is where the seeded maintenance
+  // plans live; the calorie band keeps the match sensible.
+  normal:      { category: 'other',        minCalories: 1800, maxCalories: 2500 },
   overweight:  { category: 'weight-loss', minCalories: 1200, maxCalories: 1800 },
   obese:       { category: 'cutting',     minCalories: 1000, maxCalories: 1500 },
 };
@@ -34,7 +37,15 @@ export const createDiet = async (data, userId) => {
   return diet;
 };
 
-export const updateDiet = async (id, data) => {
+export const updateDiet = async (id, data, requester) => {
+  // Only the plan's creator or a superadmin may edit it — otherwise any gym
+  // admin could modify or unpublish another admin's (or the platform's) plan.
+  const diet = await DietPlan.findById(id).select('createdBy');
+  if (!diet) throw new AppError('Diet plan not found', httpStatus.NOT_FOUND);
+  const isOwner = diet.createdBy?.toString() === requester?.id?.toString();
+  if (requester?.role !== 'superadmin' && !isOwner) {
+    throw new AppError('You can only edit diet plans you created', httpStatus.FORBIDDEN);
+  }
   return updateByIdOrFail(DietPlan, id, data);
 };
 

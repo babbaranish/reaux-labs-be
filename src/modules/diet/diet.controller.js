@@ -15,7 +15,7 @@ export const update = asyncHandler(async (req, res) => {
   if (req.file?.path) {
     req.body.image = req.file.path;
   }
-  const diet = await dietService.updateDiet(req.params.id, req.body);
+  const diet = await dietService.updateDiet(req.params.id, req.body, req.user);
   return sendSuccess(res, diet, httpStatus.OK, 'Diet plan updated successfully');
 });
 

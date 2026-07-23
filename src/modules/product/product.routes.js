@@ -9,8 +9,8 @@ import { createProductSchema, updateProductSchema } from './product.validator.js
 const router = Router();
 
 router.get('/', optionalAuth, productController.list);
-router.get('/:id', productController.getById);
-router.post('/', authenticate, authorize('admin', 'superadmin'), uploadProductImages.array('images', 5), productController.create);
-router.put('/:id', authenticate, authorize('admin', 'superadmin'), uploadProductImages.array('images', 5), productController.update);
+router.get('/:id', optionalAuth, productController.getById);
+router.post('/', authenticate, authorize('admin', 'superadmin'), uploadProductImages.array('images', 5), validate(createProductSchema), productController.create);
+router.put('/:id', authenticate, authorize('admin', 'superadmin'), uploadProductImages.array('images', 5), validate(updateProductSchema), productController.update);
 
 export default router;

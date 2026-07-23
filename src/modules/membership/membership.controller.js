@@ -19,7 +19,7 @@ export const getPlans = asyncHandler(async (req, res) => {
 });
 
 export const getPlanById = asyncHandler(async (req, res) => {
-  const plan = await membershipService.getPlanById(req.params.id);
+  const plan = await membershipService.getPlanById(req.params.id, req.user);
   return sendSuccess(res, plan);
 });
 
@@ -65,7 +65,7 @@ export const getMyMemberships = asyncHandler(async (req, res) => {
 });
 
 export const getMembershipById = asyncHandler(async (req, res) => {
-  const membership = await membershipService.getMembershipById(req.params.id);
+  const membership = await membershipService.getMembershipById(req.params.id, req.user);
   return sendSuccess(res, membership);
 });
 

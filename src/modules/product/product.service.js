@@ -1,6 +1,16 @@
+import httpStatus from 'http-status';
 import { Product } from './product.model.js';
 import { paginate } from '../../shared/pagination.js';
 import { findByIdOrFail, updateByIdOrFail } from '../../shared/crudOperations.js';
+import { AppError } from '../../shared/appError.js';
+
+// Which visibility values a given role may see (mirrors the list endpoint).
+const visibleFor = (userRole) => {
+  if (userRole === 'superadmin') return null; // all
+  if (userRole === 'admin') return ['all', 'admin'];
+  if (userRole === 'user') return ['all', 'user'];
+  return ['all']; // unauthenticated
+};
 
 export const createProduct = async (data, userId) => {
   const product = await Product.create({
@@ -44,8 +54,15 @@ export const getProducts = async (query, userRole) => {
   return result;
 };
 
-export const getProductById = async (id) => {
-  return findByIdOrFail(Product, id);
+export const getProductById = async (id, userRole) => {
+  const product = await findByIdOrFail(Product, id);
+  // Enforce the same visibility rules as the list — the bare by-id read let an
+  // anonymous caller fetch admin-only SKUs (and their wholesale pricing).
+  const allowed = visibleFor(userRole);
+  if (product.isActive === false || (allowed && !allowed.includes(product.visibility))) {
+    throw new AppError('Product not found', httpStatus.NOT_FOUND);
+  }
+  return product;
 };
 
 export const updateProduct = async (id, data) => {

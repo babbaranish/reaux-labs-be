@@ -2,6 +2,7 @@ import httpStatus from 'http-status';
 import { Order } from './order.model.js';
 import { Cart } from '../cart/cart.model.js';
 import { PromoCode } from '../promo/promo.model.js';
+import { Product } from '../product/product.model.js';
 import { User } from '../user/user.model.js';
 import { AppError } from '../../shared/appError.js';
 import { paginate } from '../../shared/pagination.js';
@@ -11,10 +12,37 @@ import { orderConfirmationEmail, newOrderAdminEmail } from '../../shared/emailTe
 import { createNotification } from '../../shared/pushNotification.js';
 
 export const createOrder = async (userId, { shippingAddress, promoCode, paymentMethod = 'cod' }) => {
-  const cart = await Cart.findOne({ userId }).populate('items.product', 'name price');
+  const cart = await Cart.findOne({ userId }).populate('items.product', 'name price stock');
 
   if (!cart || cart.items.length === 0) {
     throw new AppError('Cart is empty', httpStatus.BAD_REQUEST);
+  }
+
+  // A product may have been deleted since it was added — previously this threw a
+  // 500 on the null `item.product`. Surface a clear, actionable error instead.
+  if (cart.items.some((item) => !item.product)) {
+    throw new AppError(
+      'A product in your cart is no longer available. Please review your cart and try again.',
+      httpStatus.BAD_REQUEST,
+    );
+  }
+
+  // Reserve stock atomically and race-safely (no replica-set transaction needed):
+  // each decrement only succeeds while enough stock remains; if any line fails,
+  // roll back the ones already taken and reject the order.
+  const reserved = [];
+  for (const item of cart.items) {
+    const res = await Product.updateOne(
+      { _id: item.product._id, stock: { $gte: item.quantity } },
+      { $inc: { stock: -item.quantity } },
+    );
+    if (res.modifiedCount === 0) {
+      for (const r of reserved) {
+        await Product.updateOne({ _id: r.id }, { $inc: { stock: r.qty } });
+      }
+      throw new AppError(`Insufficient stock for ${item.product.name}`, httpStatus.BAD_REQUEST);
+    }
+    reserved.push({ id: item.product._id, qty: item.quantity });
   }
 
   const items = cart.items.map((item) => ({
@@ -36,10 +64,21 @@ export const createOrder = async (userId, { shippingAddress, promoCode, paymentM
     const promoResult = await validatePromo(promoCode, totalAmount);
     discount = promoResult.discount;
 
-    await PromoCode.findOneAndUpdate(
-      { code: promoCode.toUpperCase() },
-      { $inc: { usedCount: 1 } }
+    // Atomically claim one use — the update only matches while still under the
+    // limit, closing the check-then-increment race that let a code exceed its
+    // usageLimit under concurrent orders.
+    const claimed = await PromoCode.findOneAndUpdate(
+      {
+        code: promoCode.toUpperCase(),
+        isActive: true,
+        $or: [{ usageLimit: null }, { $expr: { $lt: ['$usedCount', '$usageLimit'] } }],
+      },
+      { $inc: { usedCount: 1 } },
+      { new: true },
     );
+    if (!claimed) {
+      throw new AppError('Promo code usage limit reached', httpStatus.BAD_REQUEST);
+    }
   }
 
   const finalAmount = totalAmount - discount;
@@ -115,9 +154,17 @@ export const getMyOrders = async (userId, query) => {
   });
 };
 
-export const getAllOrders = async (query) => {
+export const getAllOrders = async (query, requester) => {
   const filter = {};
   if (query.status) filter.status = query.status;
+
+  // Admin sees only orders placed by members of their own gym(s); superadmin
+  // sees all. Orders carry no gymId, so resolve the gym's user ids first.
+  if (requester?.role === 'admin') {
+    const gymIds = requester.gymIds?.length ? requester.gymIds : [requester.gymId].filter(Boolean);
+    const userIds = await User.find({ gymId: { $in: gymIds } }).distinct('_id');
+    filter.userId = { $in: userIds };
+  }
 
   return paginate(Order, filter, {
     page: query.page,

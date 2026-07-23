@@ -42,6 +42,6 @@ export const sendTestNotification = asyncHandler(async (req, res) => {
 });
 
 export const broadcastNotification = asyncHandler(async (req, res) => {
-  const result = await notificationService.broadcastNotification(req.body);
+  const result = await notificationService.broadcastNotification(req.body, req.user);
   return sendSuccess(res, result, httpStatus.OK, result.message);
 });

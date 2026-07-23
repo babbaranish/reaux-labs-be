@@ -36,7 +36,9 @@ export const getGyms = async (query) => {
 };
 
 export const getGymById = async (id) => {
-  return findByIdOrFail(Gym, id, { populate: { path: 'createdBy', select: 'name email' } });
+  // GET /gyms/:id is public — do NOT expose the (superadmin) creator's email,
+  // it's a privileged account distinct from the gym's public contact info.
+  return findByIdOrFail(Gym, id, { populate: { path: 'createdBy', select: 'name' } });
 };
 
 export const updateGym = async (id, data) => {

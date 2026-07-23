@@ -89,9 +89,15 @@ export const sendTestNotification = async (userId) => {
   };
 };
 
-export const broadcastNotification = async ({ title, message, type = 'announcement', metadata = {} }) => {
-  // Get all active users
-  const users = await User.find({ status: 'active' }).select('_id').lean();
+export const broadcastNotification = async ({ title, message, type = 'announcement', metadata = {} }, requester) => {
+  // Admin broadcasts reach only their own gym's active members; superadmin
+  // reaches everyone. Previously any gym admin could push to every user.
+  const filter = { status: 'active' };
+  if (requester?.role === 'admin') {
+    const gymIds = requester.gymIds?.length ? requester.gymIds : [requester.gymId].filter(Boolean);
+    filter.gymId = { $in: gymIds };
+  }
+  const users = await User.find(filter).select('_id').lean();
 
   if (users.length === 0) {
     return { sent: 0, failed: 0, message: 'No active users found' };

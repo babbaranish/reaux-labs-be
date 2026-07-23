@@ -14,7 +14,7 @@ export const getUsers = asyncHandler(async (req, res) => {
 });
 
 export const getUserById = asyncHandler(async (req, res) => {
-  const user = await userService.getUserById(req.params.id);
+  const user = await userService.getUserById(req.params.id, req.user);
   return sendSuccess(res, user);
 });
 

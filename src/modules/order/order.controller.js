@@ -15,7 +15,7 @@ export const getMyOrders = asyncHandler(async (req, res) => {
 });
 
 export const getAllOrders = asyncHandler(async (req, res) => {
-  const { data, pagination } = await orderService.getAllOrders(req.query);
+  const { data, pagination } = await orderService.getAllOrders(req.query, req.user);
   return sendPaginated(res, data, pagination);
 });
 
@@ -25,6 +25,6 @@ export const getOrderById = asyncHandler(async (req, res) => {
 });
 
 export const updateStatus = asyncHandler(async (req, res) => {
-  const order = await orderStatusService.updateOrderStatus(req.params.id, req.body.status);
+  const order = await orderStatusService.updateOrderStatus(req.params.id, req.body.status, req.user);
   return sendSuccess(res, order, httpStatus.OK, 'Order status updated');
 });

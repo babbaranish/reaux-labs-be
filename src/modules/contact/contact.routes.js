@@ -10,10 +10,11 @@ const router = Router();
 // Public — submit contact form
 router.post('/', validate(submitContactSchema), contactController.submit);
 
-// Admin+superadmin — list all contact submissions
-router.get('/', authenticate, authorize('admin', 'superadmin'), contactController.list);
+// Superadmin only — contact submissions are a global support inbox with no gym
+// association, so a gym admin must not read every user's messages/PII.
+router.get('/', authenticate, authorize('superadmin'), contactController.list);
 
-// Admin+superadmin — mark a contact submission as resolved
-router.patch('/:id/resolve', authenticate, authorize('admin', 'superadmin'), contactController.resolve);
+// Superadmin only — mark a contact submission as resolved
+router.patch('/:id/resolve', authenticate, authorize('superadmin'), contactController.resolve);
 
 export default router;

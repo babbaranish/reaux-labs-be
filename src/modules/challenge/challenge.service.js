@@ -47,25 +47,32 @@ export const joinChallenge = async (challengeId, userId) => {
   return challenge;
 };
 
-export const updateChallenge = async (challengeId, data) => {
+export const updateChallenge = async (challengeId, data, requester) => {
+  const existing = await Challenge.findById(challengeId).select('createdBy');
+  if (!existing) {
+    throw new AppError('Challenge not found', httpStatus.NOT_FOUND);
+  }
+  if (requester?.role !== 'superadmin' && existing.createdBy?.toString() !== requester?.id?.toString()) {
+    throw new AppError('You can only edit challenges you created', httpStatus.FORBIDDEN);
+  }
+
   const challenge = await Challenge.findByIdAndUpdate(challengeId, data, {
     new: true,
     runValidators: true,
   }).select('-participants');
 
-  if (!challenge) {
-    throw new AppError('Challenge not found', httpStatus.NOT_FOUND);
-  }
-
   return challenge;
 };
 
-export const deleteChallenge = async (challengeId) => {
-  const challenge = await Challenge.findByIdAndDelete(challengeId);
-
-  if (!challenge) {
+export const deleteChallenge = async (challengeId, requester) => {
+  const existing = await Challenge.findById(challengeId).select('createdBy');
+  if (!existing) {
     throw new AppError('Challenge not found', httpStatus.NOT_FOUND);
   }
+  if (requester?.role !== 'superadmin' && existing.createdBy?.toString() !== requester?.id?.toString()) {
+    throw new AppError('You can only delete challenges you created', httpStatus.FORBIDDEN);
+  }
 
-  return challenge;
+  await Challenge.findByIdAndDelete(challengeId);
+  return existing;
 };

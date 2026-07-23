@@ -15,12 +15,12 @@ export const update = asyncHandler(async (req, res) => {
   if (req.file?.path) {
     req.body.image = req.file.path;
   }
-  const cycle = await cycleService.updateCycle(req.params.id, req.body);
+  const cycle = await cycleService.updateCycle(req.params.id, req.body, req.user);
   return sendSuccess(res, cycle, httpStatus.OK, 'Cycle updated successfully');
 });
 
 export const remove = asyncHandler(async (req, res) => {
-  const result = await cycleService.deleteCycle(req.params.id);
+  const result = await cycleService.deleteCycle(req.params.id, req.user);
   return sendSuccess(res, result, httpStatus.OK, 'Cycle deleted successfully');
 });
 

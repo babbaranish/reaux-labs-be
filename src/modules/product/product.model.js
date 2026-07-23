@@ -4,13 +4,13 @@ const productSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     description: { type: String },
-    price: { type: Number, required: true },
+    price: { type: Number, required: true, min: 0 },
     compareAtPrice: { type: Number },
     images: [{ type: String }],
     category: { type: String },
     // Flavour names offered for this product, e.g. ['French Cake', 'Choco Blast'].
     flavours: [{ type: String }],
-    stock: { type: Number, default: 0 },
+    stock: { type: Number, default: 0, min: 0 },
     nutrition: {
       servingSize: { type: String },
       calories: { type: Number },

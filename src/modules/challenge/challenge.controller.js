@@ -19,11 +19,11 @@ export const joinChallenge = asyncHandler(async (req, res) => {
 });
 
 export const updateChallenge = asyncHandler(async (req, res) => {
-  const challenge = await challengeService.updateChallenge(req.params.id, req.body);
+  const challenge = await challengeService.updateChallenge(req.params.id, req.body, req.user);
   return sendSuccess(res, challenge, httpStatus.OK, 'Challenge updated');
 });
 
 export const deleteChallenge = asyncHandler(async (req, res) => {
-  await challengeService.deleteChallenge(req.params.id);
+  await challengeService.deleteChallenge(req.params.id, req.user);
   return sendSuccess(res, null, httpStatus.OK, 'Challenge deleted');
 });

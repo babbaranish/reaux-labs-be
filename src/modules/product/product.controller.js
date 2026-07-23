@@ -36,7 +36,7 @@ export const list = asyncHandler(async (req, res) => {
 });
 
 export const getById = asyncHandler(async (req, res) => {
-  const product = await productService.getProductById(req.params.id);
+  const product = await productService.getProductById(req.params.id, req.user?.role);
   return sendSuccess(res, product);
 });
 

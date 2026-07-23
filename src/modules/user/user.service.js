@@ -15,6 +15,11 @@ export const createUser = async ({ name, firstName, lastName, email, password, p
   const resolvedName = name || (firstName && lastName ? `${firstName} ${lastName}`.trim() : firstName || lastName || email.split('@')[0]);
   // Admin auto-assigns their own gym
   const resolvedGymId = creatingUser?.role === 'admin' ? creatingUser.gymId : (gymId || null);
+  // Only a superadmin may create elevated accounts. An admin can create regular
+  // members only — otherwise the superadmin-only PUT /:id/role guard is trivially
+  // bypassed at creation time (privilege escalation). Mirrors updateUser, which
+  // strips `role` for admins.
+  const resolvedRole = creatingUser?.role === 'superadmin' ? (role || 'user') : 'user';
 
   const user = await User.create({
     name: resolvedName,
@@ -23,7 +28,7 @@ export const createUser = async ({ name, firstName, lastName, email, password, p
     email,
     password,
     phone,
-    role: role || 'user',
+    role: resolvedRole,
     gymId: resolvedGymId,
     gender,
     dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
@@ -66,9 +71,21 @@ export const getUsers = async (query, user) => {
   });
 };
 
-export const getUserById = async (id) => {
+export const getUserById = async (id, requester) => {
   const user = await User.findById(id).select('-password').populate('gymId', 'name slug logo address').lean();
   if (!user) throw new AppError('User not found', httpStatus.NOT_FOUND);
+
+  // Admin may only view users within their own gym(s); superadmin sees all.
+  // Return 404 (not 403) for out-of-gym targets so admins can't probe the
+  // existence of users in other gyms.
+  if (requester?.role === 'admin') {
+    const adminGymIds = requester.gymIds?.length ? requester.gymIds : [requester.gymId].filter(Boolean);
+    const targetGymStr = (user.gymId?._id || user.gymId)?.toString();
+    if (!adminGymIds.some((gid) => gid.toString() === targetGymStr)) {
+      throw new AppError('User not found', httpStatus.NOT_FOUND);
+    }
+  }
+
   return user;
 };
 
@@ -78,6 +95,11 @@ export const updateUser = async (id, updates, adminUser) => {
 
   // Admin can only update users in their gym(s)
   if (adminUser.role === 'admin') {
+    // ...and only regular members — not fellow admins/superadmins (mirrors
+    // updateUserStatus / adminSoftDeleteUser, which both enforce this).
+    if (targetUser.role !== 'user') {
+      throw new AppError('You can only update regular members', httpStatus.FORBIDDEN);
+    }
     const adminGymIds = adminUser.gymIds?.length ? adminUser.gymIds : [adminUser.gymId].filter(Boolean);
     const targetGymStr = targetUser.gymId?.toString();
     if (!adminGymIds.some((id) => id.toString() === targetGymStr)) {

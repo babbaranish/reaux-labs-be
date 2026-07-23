@@ -19,11 +19,11 @@ export const getById = asyncHandler(async (req, res) => {
 });
 
 export const update = asyncHandler(async (req, res) => {
-  const workout = await workoutService.updateWorkout(req.params.id, req.body);
+  const workout = await workoutService.updateWorkout(req.params.id, req.body, req.user);
   return sendSuccess(res, workout, httpStatus.OK, 'Workout updated successfully');
 });
 
 export const remove = asyncHandler(async (req, res) => {
-  await workoutService.deleteWorkout(req.params.id);
+  await workoutService.deleteWorkout(req.params.id, req.user);
   return sendSuccess(res, null, httpStatus.OK, 'Workout deleted successfully');
 });

@@ -20,15 +20,26 @@ export const createCycle = async (data, userId) => {
   return cycle;
 };
 
-export const updateCycle = async (id, data) => {
+export const updateCycle = async (id, data, requester) => {
+  const existing = await CyclePlan.findById(id).select('createdBy');
+  if (!existing) {
+    throw new AppError('CyclePlan not found', httpStatus.NOT_FOUND);
+  }
+  if (requester?.role !== 'superadmin' && existing.createdBy?.toString() !== requester?.id?.toString()) {
+    throw new AppError('You can only edit cycles you created', httpStatus.FORBIDDEN);
+  }
   return updateByIdOrFail(CyclePlan, id, data);
 };
 
-export const deleteCycle = async (id) => {
-  const doc = await CyclePlan.findByIdAndDelete(id);
-  if (!doc) {
+export const deleteCycle = async (id, requester) => {
+  const existing = await CyclePlan.findById(id).select('createdBy');
+  if (!existing) {
     throw new AppError('CyclePlan not found', httpStatus.NOT_FOUND);
   }
+  if (requester?.role !== 'superadmin' && existing.createdBy?.toString() !== requester?.id?.toString()) {
+    throw new AppError('You can only delete cycles you created', httpStatus.FORBIDDEN);
+  }
+  await CyclePlan.findByIdAndDelete(id);
   return { message: 'Cycle deleted successfully' };
 };
 

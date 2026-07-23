@@ -39,12 +39,21 @@ export const getPlans = async (query, user) => {
   });
 };
 
-export const getPlanById = async (id) => {
+export const getPlanById = async (id, requester) => {
   const plan = await MembershipPlan.findById(id).populate(
     'gymId',
     'name slug'
   );
   if (!plan) throw new AppError('Plan not found', httpStatus.NOT_FOUND);
+
+  // Admin may only view plans for their own gym(s); superadmin sees all.
+  if (requester?.role === 'admin') {
+    const gymId = plan.gymId?._id || plan.gymId;
+    if (!isAdminGym(requester, gymId)) {
+      throw new AppError('Plan not found', httpStatus.NOT_FOUND);
+    }
+  }
+
   return plan;
 };
 
@@ -186,13 +195,19 @@ export const applyCredit = async (id, { amount, note }, adminUser) => {
     throw new AppError('No advance credit available', httpStatus.BAD_REQUEST);
   }
 
-  const applyAmount = Math.min(amount, membership.advanceCredit);
+  const dues = Math.max(membership.feesAmount - membership.feesPaid, 0);
+  if (dues <= 0) {
+    throw new AppError('No outstanding dues to apply credit against', httpStatus.BAD_REQUEST);
+  }
+
+  // Apply at most the credit on hand and at most what's owed. Cap feesPaid at
+  // feesAmount so the balance never goes negative — the previous code let
+  // feesPaid overshoot and then re-derived (doubled) advanceCredit from it.
+  const applyAmount = Math.min(amount ?? membership.advanceCredit, membership.advanceCredit, dues);
 
   membership.advanceCredit -= applyAmount;
   membership.feesPaid += applyAmount;
-  const balance = membership.feesAmount - membership.feesPaid;
-  membership.feesDue = balance > 0 ? balance : 0;
-  if (balance < 0) membership.advanceCredit += Math.abs(balance);
+  membership.feesDue = Math.max(membership.feesAmount - membership.feesPaid, 0);
   membership.lastPaymentDate = new Date();
   membership.paymentHistory.push({
     amount: applyAmount,
@@ -280,7 +295,7 @@ export const getMyMemberships = async (userId, query) => {
   );
 };
 
-export const getMembershipById = async (id) => {
+export const getMembershipById = async (id, requester) => {
   const membership = await UserMembership.findById(id)
     .populate('userId', 'name email avatar')
     .populate('planId', 'name durationDays price features description')
@@ -289,6 +304,16 @@ export const getMembershipById = async (id) => {
   if (!membership) {
     throw new AppError('Membership not found', httpStatus.NOT_FOUND);
   }
+
+  // Admin may only view memberships within their own gym(s); superadmin sees
+  // all. 404 (not 403) so admins can't probe other gyms' membership ids.
+  if (requester?.role === 'admin') {
+    const gymId = membership.gymId?._id || membership.gymId;
+    if (!isAdminGym(requester, gymId)) {
+      throw new AppError('Membership not found', httpStatus.NOT_FOUND);
+    }
+  }
+
   return membership;
 };
 
